@@ -1,42 +1,81 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+import { useNavigate } from 'react-router-dom';
 import './UploadInvestmentReturns.css';
+
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const UploadInvestmentReturns = () => {
   const [data, setData] = useState('');
   const [currency, setCurrency] = useState('USD');
   const [fundName, setFundName] = useState('');
-  const exampleData = 'YYYY-MM-DD | 0.0123\nYYYY-MM-DD | 0.0456';
+  const [chartData, setChartData] = useState(null);
+  const exampleData = 'YYYY-MM-DD\t0.0123\nYYYY-MM-DD\t0.0456';
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (data) {
+      parseData(data);
+    }
+  }, [data]);
 
   const handlePaste = (event) => {
     const paste = event.clipboardData.getData('Text');
     setData(paste);
   };
 
-  const handleUpload = async () => {
-    const payload = {
-      fundName,
-      currency,
-      returnsData: data,
-    };
-
-    try {
-      const response = await fetch('https://your-backend-endpoint.com/upload', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+  const parseData = (paste) => {
+    const lines = paste.split('\n');
+    const dates = [];
+    const returns = [];
+    let cumulativeReturn = 1;
+    lines.forEach(line => {
+      const [date, ret] = line.split('\t').map(s => s.trim());
+      if (date && ret) {
+        dates.push(date);
+        cumulativeReturn *= (1 + parseFloat(ret));
+        returns.push((cumulativeReturn - 1) * 100); // Convert to percentage
       }
+    });
 
-      const responseData = await response.json();
-      alert('Data uploaded successfully: ' + JSON.stringify(responseData));
-    } catch (error) {
-      alert('There was a problem with the upload: ' + error.message);
-    }
+    setChartData({
+      labels: dates,
+      datasets: [
+        {
+          label: `${fundName} Cumulative Returns`,
+          data: returns,
+          fill: false,
+          backgroundColor: 'blue',
+          borderColor: 'blue',
+        }
+      ]
+    });
+  };
+
+  const handleUpload = () => {
+    navigate('/select-comparisons'); // Navigate to /select-comparisons page
+  };
+
+  const handleCancel = () => {
+    window.location.reload(); // Reload the page
   };
 
   return (
@@ -79,8 +118,13 @@ const UploadInvestmentReturns = () => {
           {!data && <pre className="placeholder-text">{exampleData}</pre>}
         </div>
       </div>
+      {chartData && (
+        <div className="chart-container">
+          <Line data={chartData} />
+        </div>
+      )}
       <div className="footer">
-        <button className="cancel-button" onClick={() => setData('')}>Cancel</button>
+        <button className="cancel-button" onClick={handleCancel}>Cancel</button>
         <button className="upload-button" onClick={handleUpload}>Upload</button>
       </div>
     </div>

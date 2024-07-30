@@ -1,137 +1,54 @@
 .select-comparisons-container {
-    max-width: 900px;
-    margin: 20px auto;
-    padding: 20px;
-    border: 1px solid #ddd;
-    border-radius: 8px;
-    background-color: #fff;
-  }
-  
-  h2 {
-    font-size: 24px;
-    color: #333;
-  }
-  
-  p {
-    font-size: 16px;
-    color: #666;
-  }
-  
-  .form-group {
-    margin-bottom: 15px;
-  }
-  
-  .form-group label {
-    display: block;
-    font-size: 14px;
-    color: #333;
-    margin-bottom: 5px;
-  }
-  
-  .benchmark-inputs {
-    display: flex;
-    gap: 10px;
-  }
-  
-  .return-streams-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 5px;
-    font-weight: bold;
-  }
-  
-  .return-streams-header span {
-    flex: 1;
-    text-align: center;
-  }
-  
-  .return-streams {
-    display: flex;
-    align-items: center;
-    margin-bottom: 10px;
-    flex-wrap: wrap;
-  }
-  
-  .return-stream-input {
-    margin-right: 10px;
-    flex: 1;
-    min-width: 150px;
-  }
-  
-  .return-stream-input label {
-    display: block;
-    font-size: 12px;
-    color: #333;
-    margin-bottom: 3px;
-  }
-  
-  .return-stream-input input {
-    width: calc(100% - 10px);
-    padding: 8px;
-    font-size: 14px;
-    color: #333;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    box-sizing: border-box;
-    margin-bottom: 5px;
-  }
-  
-  .ticker-info {
-    font-size: 12px;
-    color: #aaa;
-    margin-top: -5px; /* Adjust this value to position the text correctly */
-  }
-  
-  .return-streams .minus-sign {
-    margin-right: 10px;
-    font-size: 16px;
-  }
-  
-  .return-streams .remove-button {
-    background-color: #f44336;
-    color: #fff;
-    border: none;
-    padding: 0 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 20px;
-    margin-left: 10px;
-  }
-  
-  .return-streams .remove-button:hover {
-    background-color: #d32f2f;
-  }
-  
-  .add-button {
-    background-color: #4caf50;
-    color: #fff;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 20px;
-    margin-top: 10px;
-  }
-  
-  .add-button:hover {
-    background-color: #388e3c;
-  }
-  
-  .footer {
-    margin-top: 20px;
-    text-align: right;
-  }
-  
-  .submit-button {
-    background-color: #00bcd4;
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-  
-  .submit-button:hover {
-    background-color: #0097a7;
-  }
-  
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  background-color: #fff;
+}
+
+h2 {
+  font-size: 24px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+p {
+  font-size: 16px;
+  color: #666;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.benchmark-inputs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.return-stream-accordions {
+  margin-top: 20px;
+}
+
+.footer {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.submit-button {
+  margin-right: 10px;
+}
+
+.add-button {
+  background-color: seafoamgreen;
+}

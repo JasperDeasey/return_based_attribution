@@ -1,27 +1,33 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import SearchComponent from '../SearchComponent/SearchComponent';
+import BenchmarkInputs from '../BenchmarkInputs/BenchmarkInputs';
+import ReturnStreamAccordion from '../ReturnStreamAccordion/ReturnStreamAccordion';
+import { Button } from '@mui/material';
 import './SelectComparisons.css';
+
+const API_KEY = '9b844e8409a741cc8591e874a1c5f99f';
 
 const SelectComparisons = () => {
   const [benchmark, setBenchmark] = useState('ACWI');
   const [benchmarkDescription, setBenchmarkDescription] = useState('MSCI ACWI');
   const [returnStreams, setReturnStreams] = useState([
-    { returnStream1: 'ACWI', returnStream2: 'SHV', description: 'Equity' },
-    { returnStream1: 'IEF', returnStream2: 'SHV', description: 'US Interest Rate' },
-    { returnStream1: 'LQD', returnStream2: 'SHV', description: 'US Credit' },
-    { returnStream1: 'TIP', returnStream2: 'IEF', description: 'US Inflation' },
-    { returnStream1: 'SPY', returnStream2: 'SHV', description: 'US Equity' },
-    { returnStream1: 'PUTW', returnStream2: 'SHV', description: 'Equity Short Volatility' },
-    { returnStream1: 'MTUM', returnStream2: '', description: 'Momentum' },
-    { returnStream1: 'QUAL', returnStream2: '', description: 'Quality' },
-    { returnStream1: 'VLUE', returnStream2: '', description: 'Value' },
-    { returnStream1: 'IJR', returnStream2: '', description: 'Small Cap' },
+    { returnStream1: 'ACWI', returnStream2: 'SHV', description: 'Equity', name1: 'MSCI ACWI', name2: 'iShares Short Treasury Bond ETF' },
+    { returnStream1: 'IEF', returnStream2: 'SHV', description: 'US Interest Rate', name1: 'iShares 7-10 Year Treasury Bond ETF', name2: 'iShares Short Treasury Bond ETF' },
+    { returnStream1: 'LQD', returnStream2: 'SHV', description: 'US Credit', name1: 'iShares iBoxx $ Investment Grade Corporate Bond ETF', name2: 'iShares Short Treasury Bond ETF' },
+    { returnStream1: 'TIP', returnStream2: 'IEF', description: 'US Inflation', name1: 'iShares TIPS Bond ETF', name2: 'iShares 7-10 Year Treasury Bond ETF' },
+    { returnStream1: 'SPY', returnStream2: 'SHV', description: 'US Equity', name1: 'SPDR S&P 500 ETF Trust', name2: 'iShares Short Treasury Bond ETF' },
+    { returnStream1: 'PUTW', returnStream2: 'SHV', description: 'Equity Short Volatility', name1: 'WisdomTree CBOE S&P 500 PutWrite Strategy Fund', name2: 'iShares Short Treasury Bond ETF' },
+    { returnStream1: 'MTUM', returnStream2: '', description: 'Momentum', name1: 'iShares MSCI USA Momentum Factor ETF', name2: '' },
+    { returnStream1: 'QUAL', returnStream2: '', description: 'Quality', name1: 'iShares MSCI USA Quality Factor ETF', name2: '' },
+    { returnStream1: 'VLUE', returnStream2: '', description: 'Value', name1: 'iShares MSCI USA Value Factor ETF', name2: '' },
+    { returnStream1: 'IJR', returnStream2: '', description: 'Small Cap', name1: 'iShares Core S&P Small-Cap ETF', name2: '' },
   ]);
 
   const navigate = useNavigate();
 
   const handleAddStream = () => {
-    setReturnStreams([...returnStreams, { returnStream1: '', returnStream2: '', description: 'Description' }]);
+    setReturnStreams([...returnStreams, { returnStream1: '', returnStream2: '', description: 'Description', name1: '', name2: '' }]);
   };
 
   const handleRemoveStream = (index) => {
@@ -30,108 +36,49 @@ const SelectComparisons = () => {
   };
 
   const handleStreamChange = (index, field, value) => {
-    const newReturnStreams = returnStreams.map((stream, i) =>
-      i === index ? { ...stream, [field]: value } : stream
-    );
+    const newReturnStreams = returnStreams.map((stream, i) => (i === index ? { ...stream, [field]: value } : stream));
     setReturnStreams(newReturnStreams);
   };
 
-  const handleSubmit = async () => {
-    const payload = {
+  const handleSearchResultClick = (symbol, instrument_name) => {
+    setBenchmark(symbol);
+    setBenchmarkDescription(instrument_name);
+  };
+
+  const handleSubmit = () => {
+    console.log({
       benchmark,
       benchmarkDescription,
       returnStreams,
-    };
-
-    try {
-      const response = await fetch('https://your-backend-endpoint.com/select-comparisons', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-
-      await response.json();
-      navigate('/analysis');
-    } catch (error) {
-      alert('There was a problem with the selection: ' + error.message);
-    }
+    });
+    navigate('/analysis');
   };
 
   return (
     <div className="select-comparisons-container">
       <h2>Select Comparisons</h2>
-      <p>Select Yahoo Finance Tickers for a benchmark and regression inputs</p>
-      <div className="form-group">
-        <label htmlFor="benchmark">Benchmark Ticker:</label>
-        <input
-          type="text"
-          id="benchmark"
-          value={benchmark}
-          onChange={(e) => setBenchmark(e.target.value)}
-          placeholder="Benchmark Ticker"
-        />
-      </div>
-      <div className="form-group">
-        <label htmlFor="benchmarkDescription">Description:</label>
-        <input
-          type="text"
-          id="benchmarkDescription"
-          value={benchmarkDescription}
-          onChange={(e) => setBenchmarkDescription(e.target.value)}
-          placeholder="Benchmark Description"
-        />
-      </div>
-      <div className="form-group">
-        <label>Regression Return Streams:</label>
-        <div className="return-streams-header">
-          <span>Return Stream 1</span>
-          <span>Optional: Minus Return Stream 2</span>
-          <span>Description</span>
-        </div>
+      <SearchComponent onSelect={handleSearchResultClick} />
+      <BenchmarkInputs
+        benchmark={benchmark}
+        setBenchmark={setBenchmark}
+        benchmarkDescription={benchmarkDescription}
+        setBenchmarkDescription={setBenchmarkDescription}
+      />
+      <div className="return-stream-accordions">
         {returnStreams.map((stream, index) => (
-          <div key={index} className="return-streams">
-            <div className="return-stream-input">
-              <input
-                type="text"
-                placeholder="Return Stream 1"
-                value={stream.returnStream1}
-                onChange={(e) => handleStreamChange(index, 'returnStream1', e.target.value)}
-              />
-              <p className="ticker-info">Placeholder for Ticker Info</p>
-            </div>
-            <span className="minus-sign">-</span>
-            <div className="return-stream-input">
-              <input
-                type="text"
-                placeholder="Return Stream 2"
-                value={stream.returnStream2}
-                onChange={(e) => handleStreamChange(index, 'returnStream2', e.target.value)}
-              />
-              <p className="ticker-info">Placeholder for Ticker Info</p>
-            </div>
-            <div className="return-stream-input">
-              <input
-                type="text"
-                placeholder="Description"
-                value={stream.description}
-                onChange={(e) => handleStreamChange(index, 'description', e.target.value)}
-              />
-            </div>
-            {returnStreams.length > 1 && (
-              <button className="remove-button" onClick={() => handleRemoveStream(index)}>−</button>
-            )}
-          </div>
+          <ReturnStreamAccordion
+            key={index}
+            returnStream={stream}
+            apiKey={API_KEY}
+            index={index}
+            handleStreamChange={handleStreamChange}
+            handleRemoveStream={handleRemoveStream}
+          />
         ))}
-        <button className="add-button" onClick={handleAddStream}>+</button>
       </div>
       <div className="footer">
-        <button className="submit-button" onClick={handleSubmit}>Submit</button>
+        <Button variant="contained" style={{ backgroundColor: 'seafoamgreen' }} className="add-button" onClick={handleAddStream}>Add Return Stream</Button>
+        <Button variant="contained" color="primary" className="submit-button" onClick={handleSubmit}>Submit</Button>
       </div>
     </div>
   );
