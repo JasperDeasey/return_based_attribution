@@ -3,5 +3,4 @@ numpy
 pandas
 scikit-learn
 statsmodels
-
-yfinance
+pandas-datareader
