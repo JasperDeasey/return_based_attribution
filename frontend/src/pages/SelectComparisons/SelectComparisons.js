@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SearchComponent from '../SearchComponent/SearchComponent';
-import BenchmarkInputs from '../BenchmarkInputs/BenchmarkInputs';
-import ReturnStreamAccordion from '../ReturnStreamAccordion/ReturnStreamAccordion';
+import SearchComponent from '../../components/SearchComponent/SearchComponent';
+import BenchmarkInputs from '../../components/BenchmarkInputs/BenchmarkInputs';
+import ReturnStreamAccordion from '../../components/ReturnStreamAccordion/ReturnStreamAccordion';
 import { Button } from '@mui/material';
 import './SelectComparisons.css';
 

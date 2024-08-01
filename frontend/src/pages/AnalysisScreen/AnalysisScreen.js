@@ -1,5 +1,5 @@
 import React from 'react';
-import './AnalysisScreen.css'; // Create this CSS file for styling
+import './AnalysisScreen.css';
 
 const AnalysisScreen = () => {
   return (

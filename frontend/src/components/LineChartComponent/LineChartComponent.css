@@ -1,0 +1,13 @@
+.chart-container {
+  position: relative;
+}
+
+.buttons-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+
+button {
+  margin: 0 5px;
+}
