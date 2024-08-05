@@ -3,6 +3,8 @@ import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, TimeScale } from 'chart.js';
 import { Button, IconButton } from '@mui/material';
 import { SaveAlt as SaveAltIcon, FileCopy as FileCopyIcon, Image as ImageIcon } from '@mui/icons-material';
+import DownloadIcon from '@mui/icons-material/Download';
+
 import html2canvas from 'html2canvas';
 import { saveAs } from 'file-saver';
 import 'chartjs-adapter-date-fns';
@@ -23,7 +25,7 @@ const colorPalette = [
   'rgba(255, 99, 132, 1)'
 ];
 
-const LineChartComponent = ({ chartData }) => {
+const LineChartComponent = ({ chartData, makeCumulative}) => {
   const chartRef = React.useRef(null);
 
   const downloadCSV = () => {
@@ -104,12 +106,10 @@ const LineChartComponent = ({ chartData }) => {
         <Line data={generateChartData()} options={options} />
       </div>
       <div style={{ marginTop: "10px", display: "flex", justifyContent: "center" }}>
-        <Button variant="contained" color="primary" startIcon={<SaveAltIcon />} onClick={downloadCSV}>
-          Download CSV
-        </Button>
-        <IconButton color="primary" onClick={copyImage}>
-          <FileCopyIcon />
+        <IconButton color="primary" onClick={downloadCSV}>
+          <DownloadIcon />
         </IconButton>
+
         <IconButton color="primary" onClick={downloadImage}>
           <ImageIcon />
         </IconButton>

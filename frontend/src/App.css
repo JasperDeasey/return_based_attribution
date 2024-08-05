@@ -1,5 +1,7 @@
 .App {
   text-align: center;
+  background-color: #f0f4f5; /* Off-white greyish pink color */
+  min-height: 100vh; /* Ensure the background covers the full height */
 }
 
 .App-logo {

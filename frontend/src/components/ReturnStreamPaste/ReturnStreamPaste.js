@@ -1,52 +1,65 @@
-import React, { useEffect } from 'react';
-import { TextField, Typography, Box } from '@mui/material';
+import React, { useState, useCallback } from 'react';
+import { DataGrid } from '@mui/x-data-grid';
 import PropTypes from 'prop-types';
-import './ReturnStreamPaste.css';
+import { Box, Button } from '@mui/material';
 
-const ReturnStreamPaste = ({ data, setData, exampleData }) => {
-  const handlePaste = (event) => {
-    const paste = event.clipboardData.getData('Text');
-    setData(paste);
+const ReturnStreamPaste = ({ onClear, onSubmit }) => {
+  const [rows, setRows] = useState([
+    { id: 1, date: 'YYYY-MM-DD', return: '0.0XX' },
+  ]);
+
+  const columns = [
+    { field: 'date', headerName: 'Date', width: 150, editable: true },
+    { field: 'return', headerName: 'Monthly Return', width: 150, editable: true },
+  ];
+
+  const handleClear = () => {
+    setRows([{ id: 1, date: 'YYYY-MM-DD', return: '0.0XX' }]);
+    onClear()
+  };
+
+  const handlePaste = useCallback((event) => {
+    event.preventDefault();
+    const clipboardData = event.clipboardData.getData('Text');
+    const parsedRows = clipboardData.split('\n').map((row, index) => {
+      const [date, returnValue] = row.split('\t');
+      return {
+        id: index + 1,
+        date: date.trim(), // Trims whitespace and line ending characters from the date
+        return: returnValue.trim().replace(/\r$/, '') // Removes only the trailing carriage return character from return value
+      };
+    });
+    setRows(parsedRows);
+  }, []);
+
+  const handleSubmit = () => {
+    onSubmit(rows);  // Trigger the submission with the current state of rows
   };
 
   return (
-    <Box sx={{ position: 'relative', marginBottom: 2 }}>
-      <TextField
-        label="Paste Area"
-        variant="outlined"
-        multiline
-        fullWidth
-        minRows={4}
-        onPaste={handlePaste}
-        value={data}
-        onChange={(e) => setData(e.target.value)}
+    <Box sx={{ width: '100%', position: 'relative' }} onPaste={handlePaste}>
+      <DataGrid
+        rows={rows}
+        columns={columns}
+        pageSize={5}
+        rowsPerPageOptions={[5]}
+        onCellClick={() => document.activeElement.blur()}
+        sx={{ height: 300, '& .MuiDataGrid-footerContainer': { justifyContent: 'space-between' } }}
       />
-      {!data && (
-        <Typography
-          component="pre"
-          sx={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            padding: '16.5px 14px',
-            pointerEvents: 'none',
-            opacity: 0.5,
-            color: 'gray'
-          }}
-        >
-          {exampleData}
-        </Typography>
-      )}
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, position: 'absolute', bottom: 0, right: 0, padding: 1 }}>
+        <Button variant="contained" onClick={handleClear}>
+          Clear
+        </Button>
+        <Button variant="contained" onClick={handleSubmit}>
+          Submit
+        </Button>
+      </Box>
     </Box>
   );
 };
 
 ReturnStreamPaste.propTypes = {
-  data: PropTypes.string.isRequired,
-  setData: PropTypes.func.isRequired,
-  exampleData: PropTypes.string.isRequired,
+  onSubmit: PropTypes.func.isRequired,
 };
 
 export default ReturnStreamPaste;

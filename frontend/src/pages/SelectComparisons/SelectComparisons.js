@@ -1,86 +1,184 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import SearchComponent from '../../components/SearchComponent/SearchComponent';
-import BenchmarkInputs from '../../components/BenchmarkInputs/BenchmarkInputs';
-import ReturnStreamAccordion from '../../components/ReturnStreamAccordion/ReturnStreamAccordion';
-import { Button } from '@mui/material';
+import { Typography, Box, Button, IconButton } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
+import RegressionAccordion from '../../components/RegressionAccordion/RegressionAccordion';
+import FundReturnInput from '../../components/FundReturnInput';
+import BenchmarkInputs from '../../components/BenchmarkInputs';
 import './SelectComparisons.css';
 
-const API_KEY = '9b844e8409a741cc8591e874a1c5f99f';
+const initialData = {
+  fund: { description: 'Input Fund Name', pastedData: [] },
+  benchmark: { description: 'ACWI', source: 'MSCI ACWI TR Net USD' },
+  residual_return_streams: [
+    { description: 'Equity', source: 'MSCI ACWI TR Gross USD', residualization: [] },
+    { description: 'Interest Rates', source: 'Bloomberg Global Aggregate - Sovereign USD', residualization: [] },
+    { description: 'Credit', source: 'Bloomberg US Corporate Index', residualization: ['Equity', 'Interest Rates'] },
+    { description: 'Emerging Markets', source: 'MSCI EM TR Gross USD', residualization: ['Equity', 'Interest Rates', 'Credit'] },
+    { description: 'Momentum', source: 'MSCI ACWI Momentum TR Gross USD', residualization: ['Equity', 'Interest Rates', 'Credit', 'Emerging Markets'] },
+    { description: 'Quality', source: 'MSCI ACWI Quality TR Gross USD', residualization: ['Equity', 'Interest Rates', 'Credit', 'Emerging Markets'] },
+    { description: 'Small Cap', source: 'MSCI ACWI Small Cap TR Gross USD', residualization: ['Equity', 'Interest Rates', 'Credit', 'Emerging Markets'] },
+    { description: 'Value', source: 'MSCI ACWI Value TR Gross USD', residualization: ['Equity', 'Interest Rates', 'Credit', 'Emerging Markets'] }
+  ]
+};
 
 const SelectComparisons = () => {
-  const [benchmark, setBenchmark] = useState('ACWI');
-  const [benchmarkDescription, setBenchmarkDescription] = useState('MSCI ACWI');
-  const [returnStreams, setReturnStreams] = useState([
-    { returnStream1: 'ACWI', returnStream2: 'SHV', description: 'Equity', name1: 'MSCI ACWI', name2: 'iShares Short Treasury Bond ETF' },
-    { returnStream1: 'IEF', returnStream2: 'SHV', description: 'US Interest Rate', name1: 'iShares 7-10 Year Treasury Bond ETF', name2: 'iShares Short Treasury Bond ETF' },
-    { returnStream1: 'LQD', returnStream2: 'SHV', description: 'US Credit', name1: 'iShares iBoxx $ Investment Grade Corporate Bond ETF', name2: 'iShares Short Treasury Bond ETF' },
-    { returnStream1: 'TIP', returnStream2: 'IEF', description: 'US Inflation', name1: 'iShares TIPS Bond ETF', name2: 'iShares 7-10 Year Treasury Bond ETF' },
-    { returnStream1: 'SPY', returnStream2: 'SHV', description: 'US Equity', name1: 'SPDR S&P 500 ETF Trust', name2: 'iShares Short Treasury Bond ETF' },
-    { returnStream1: 'PUTW', returnStream2: 'SHV', description: 'Equity Short Volatility', name1: 'WisdomTree CBOE S&P 500 PutWrite Strategy Fund', name2: 'iShares Short Treasury Bond ETF' },
-    { returnStream1: 'MTUM', returnStream2: '', description: 'Momentum', name1: 'iShares MSCI USA Momentum Factor ETF', name2: '' },
-    { returnStream1: 'QUAL', returnStream2: '', description: 'Quality', name1: 'iShares MSCI USA Quality Factor ETF', name2: '' },
-    { returnStream1: 'VLUE', returnStream2: '', description: 'Value', name1: 'iShares MSCI USA Value Factor ETF', name2: '' },
-    { returnStream1: 'IJR', returnStream2: '', description: 'Small Cap', name1: 'iShares Core S&P Small-Cap ETF', name2: '' },
-  ]);
-
   const navigate = useNavigate();
+  const [data, setData] = useState(initialData);
 
-  const handleAddStream = () => {
-    setReturnStreams([...returnStreams, { returnStream1: '', returnStream2: '', description: 'Description', name1: '', name2: '' }]);
-  };
-
-  const handleRemoveStream = (index) => {
-    const newReturnStreams = returnStreams.filter((_, i) => i !== index);
-    setReturnStreams(newReturnStreams);
-  };
-
-  const handleStreamChange = (index, field, value) => {
-    const newReturnStreams = returnStreams.map((stream, i) => (i === index ? { ...stream, [field]: value } : stream));
-    setReturnStreams(newReturnStreams);
-  };
-
-  const handleSearchResultClick = (symbol, instrument_name) => {
-    setBenchmark(symbol);
-    setBenchmarkDescription(instrument_name);
-  };
+  useEffect(() => {
+    console.log("State updated:", data);
+  }, [data]);
 
   const handleSubmit = () => {
-    console.log({
-      benchmark,
-      benchmarkDescription,
-      returnStreams,
+    const url = 'http://localhost:5000/submit-data';
+    fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)  // 'data' is now properly defined in this scope
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(responseData => {
+      console.log('Success:', responseData);
+      navigate('/analysis', { state: { data: responseData } });  // Navigate and pass data as state to /analysis route
+    })
+    .catch((error) => {
+      console.error('Error:', error);
     });
-    navigate('/analysis');
   };
 
+  const handleFundDescriptionChange = (field, value) => {
+    setData(prevData => ({
+      ...prevData,
+      fund: { ...prevData.fund, [field]: value }
+    }));
+  };
+
+  const handleBenchmarkChange = (field, value) => {
+    setData(prevData => ({
+      ...prevData,
+      benchmark: { ...prevData.benchmark, [field]: value }
+    }));
+  };
+
+  const handleDataChange = (index, field, value) => {
+    setData(prevData => {
+      const updatedResiduals = prevData.residual_return_streams.map((residual, i) => {
+        if (i === index) {
+          return { ...residual, [field]: value };
+        }
+        if (field === 'description') {
+          return {
+            ...residual,
+            residualization: residual.residualization.map(residualizationItem =>
+              residualizationItem === prevData.residual_return_streams[index].description ? value : residualizationItem
+            )
+          };
+        }
+        return residual;
+      });
+      return {
+        ...prevData,
+        residual_return_streams: updatedResiduals
+      };
+    });
+  };
+
+  const handleRemoveRegression = (description) => {
+    setData(prevData => {
+      const updatedResiduals = prevData.residual_return_streams
+        .filter(residual => residual.description !== description)
+        .map(residual => ({
+          ...residual,
+          residualization: residual.residualization.filter(residualizationItem => residualizationItem !== description)
+        }));
+      return {
+        ...prevData,
+        residual_return_streams: updatedResiduals
+      };
+    });
+  };
+
+  const handleAddResidual = () => {
+    setData(prevData => ({
+      ...prevData,
+      residual_return_streams: [...prevData.residual_return_streams, { description: `New Residual ${prevData.residual_return_streams.length + 1}`, source: '', residualization: [] }]
+    }));
+  };
+
+
+  const handlePastedDataUpdate = (newData) => {
+    console.log(newData)
+    setData(prevData => ({
+      ...prevData,
+      fund: {
+        ...prevData.fund,
+        pastedData: newData
+      }
+    }));
+  };
+
+  const availableDescriptions = data.residual_return_streams.map(stream => stream.description);
+
   return (
-    <div className="select-comparisons-container">
-      <h2>Select Comparisons</h2>
-      <SearchComponent onSelect={handleSearchResultClick} />
-      <BenchmarkInputs
-        benchmark={benchmark}
-        setBenchmark={setBenchmark}
-        benchmarkDescription={benchmarkDescription}
-        setBenchmarkDescription={setBenchmarkDescription}
-      />
+    <Box sx={{ padding: 2 }}>
+      <Typography variant="h4">Return-Based Statistical Analysis</Typography>
+      <Typography variant="b2">Upload and select return streams below</Typography>
       <div className="return-stream-accordions">
-        {returnStreams.map((stream, index) => (
-          <ReturnStreamAccordion
-            key={index}
-            returnStream={stream}
-            apiKey={API_KEY}
-            index={index}
-            handleStreamChange={handleStreamChange}
-            handleRemoveStream={handleRemoveStream}
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="h6" sx={{ textAlign: 'left' }}>Fund</Typography>
+          <FundReturnInput
+            fund={data.fund}
+            onDescriptionChange={handleFundDescriptionChange}
+            updateFundReturns={handlePastedDataUpdate}
           />
-        ))}
+        </Box>
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="h6" sx={{ textAlign: 'left' }}>Benchmark</Typography>
+          <BenchmarkInputs
+            benchmarkData={data.benchmark}
+            handleDescriptionChange={handleBenchmarkChange}
+            handleStreamChange={handleBenchmarkChange}
+          />
+        </Box>
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="h6" sx={{ textAlign: 'left' }}>Regression Return Streams</Typography>
+          {data.residual_return_streams.map((stream, index) => (
+            <RegressionAccordion
+              key={index}
+              index={index}
+              returnStream={stream}
+              handleDataChange={handleDataChange}
+              onRemove={() => handleRemoveRegression(stream.description)}
+              availableDescriptions={availableDescriptions}
+            />
+          ))}
+        <IconButton 
+          color="primary" 
+          onClick={handleAddResidual}
+          sx={{
+            backgroundColor: '#b2dfdb',  // A softer shade of teal
+            color: 'white',
+            '&:hover': {
+              backgroundColor: '#82ada9',  // A darker, muted teal for hover
+            },
+            mt: 1,
+            float: 'right'  // Aligns the button to the right
+          }}
+        >
+          <AddIcon />
+        </IconButton>
+        </Box>
       </div>
-      <div className="footer">
-        <Button variant="contained" style={{ backgroundColor: 'seafoamgreen' }} className="add-button" onClick={handleAddStream}>Add Return Stream</Button>
-        <Button variant="contained" color="primary" className="submit-button" onClick={handleSubmit}>Submit</Button>
-      </div>
-    </div>
+      <Button variant="contained" color="primary" className="submit-button" onClick={handleSubmit}>Submit</Button>
+    </Box>
   );
 };
 

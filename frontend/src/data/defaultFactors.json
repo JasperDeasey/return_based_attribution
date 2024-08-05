@@ -1,0 +1,42 @@
+[
+  {
+    "description": "Equity",
+    "source": "MSCI ACWI TR Gross USD",
+    "residualization": []
+  },
+  {
+    "description": "Interest Rates",
+    "source": "Bloomberg Global Aggregate - Sovereign USD",
+    "residualization": []
+  },
+  {
+    "description": "Credit",
+    "source": "Bloomberg US Corporate Index",
+    "residualization": ["Equity", "Interest Rates"]
+  },
+  {
+    "description": "Emerging Markets",
+    "source": "MSCI EM TR Gross USD",
+    "residualization": ["Equity", "Interest Rates", "Credit"]
+  },
+  {
+    "description": "Momentum",
+    "source": "MSCI ACWI Momentum TR Gross USD",
+    "residualization": ["Equity", "Interest Rates", "Credit", "Emerging Markets"]
+  },
+  {
+    "description": "Quality",
+    "source": "MSCI ACWI Quality TR Gross USD",
+    "residualization": ["Equity", "Interest Rates", "Credit", "Emerging Markets"]
+  },
+  {
+    "description": "Small Cap",
+    "source": "MSCI ACWI Small Cap TR Gross USD",
+    "residualization": ["Equity", "Interest Rates", "Credit", "Emerging Markets"]
+  },
+  {
+    "description": "Value",
+    "source": "MSCI ACWI Value TR Gross USD",
+    "residualization": ["Equity", "Interest Rates", "Credit", "Emerging Markets"]
+  }
+]

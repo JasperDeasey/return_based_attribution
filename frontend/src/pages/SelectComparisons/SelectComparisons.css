@@ -1,54 +1,26 @@
+/* SelectComparisons.css */
 .select-comparisons-container {
-  max-width: 900px;
-  margin: 20px auto;
-  padding: 20px;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  background-color: #fff;
-}
-
-h2 {
-  font-size: 24px;
-  color: #333;
-  margin-bottom: 20px;
-}
-
-p {
-  font-size: 16px;
-  color: #666;
-}
-
-.form-group {
-  margin-bottom: 15px;
-}
-
-.form-group label {
-  display: block;
-  font-size: 14px;
-  color: #333;
-  margin-bottom: 5px;
-}
-
-.benchmark-inputs {
   display: flex;
-  gap: 10px;
-  margin-bottom: 20px;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .return-stream-accordions {
-  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .footer {
-  margin-top: 20px;
   display: flex;
   justify-content: space-between;
-}
-
-.submit-button {
-  margin-right: 10px;
+  margin-top: 16px;
 }
 
 .add-button {
   background-color: seafoamgreen;
+}
+
+.submit-button {
+  background-color: primary;
 }

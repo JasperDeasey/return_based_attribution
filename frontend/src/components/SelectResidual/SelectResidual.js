@@ -2,33 +2,16 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Box, TextField, List, ListItem, ListItemText } from '@mui/material';
 import debounce from 'lodash.debounce';
 
-const SearchComponent = ({ onSelect }) => {
+const SelectResidual = ({ onSelect, availableDescriptions }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
-  const [benchmarks, setBenchmarks] = useState([]);
-
-  useEffect(() => {
-    fetch('/benchmark_metadata_temp.json')
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return response.json();
-      })
-      .then(data => {
-        setBenchmarks(data);
-      })
-      .catch(error => {
-        console.error("Error fetching the benchmarks data:", error);
-      });
-  }, []);
 
   const handleSearch = useCallback(debounce((query) => {
-    const results = benchmarks
-      .filter(benchmark => benchmark.benchmark_name.toLowerCase().includes(query.toLowerCase()))
+    const results = availableDescriptions
+      .filter(description => description && description.toLowerCase().includes(query.toLowerCase()))
       .slice(0, 50);
     setSearchResults(results);
-  }, 300), [benchmarks]);
+  }, 300), [availableDescriptions]);
 
   useEffect(() => {
     if (searchQuery) {
@@ -41,7 +24,7 @@ const SearchComponent = ({ onSelect }) => {
   return (
     <Box sx={{ mb: 2 }}>
       <TextField
-        label="Search by Name"
+        label="Residualize Against"
         value={searchQuery}
         onChange={(e) => setSearchQuery(e.target.value)}
         fullWidth
@@ -53,11 +36,11 @@ const SearchComponent = ({ onSelect }) => {
           {searchResults.map((result) => (
             <ListItem
               button
-              key={result.benchmark_name}
-              onClick={() => onSelect(result.benchmark_name)}
+              key={result}
+              onClick={() => onSelect(result)}
             >
               <ListItemText
-                primary={`${result.benchmark_name} (${result.min_date} - ${result.max_date})`}
+                primary={result}
               />
             </ListItem>
           ))}
@@ -67,4 +50,4 @@ const SearchComponent = ({ onSelect }) => {
   );
 };
 
-export default SearchComponent;
+export default SelectResidual;

@@ -1,42 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Line } from 'react-chartjs-2';
-import axios from 'axios';
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
+import { Box, Button, Typography } from '@mui/material';
+import { LineChart } from '@mui/x-charts/LineChart';
+import PropTypes from 'prop-types';
 import './ReturnStreamChart.css';
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  PointElement,
-  LineElement,
-  Title,
-  Tooltip,
-  Legend
-);
-
-const fetchData = async (ticker, apiKey) => {
-  try {
-    const response = await axios.get(`https://api.twelvedata.com/time_series?symbol=${ticker}&interval=1month&outputsize=60&currency=USD&apikey=${apiKey}`);
-    if (response.data && response.data.values) {
-      return response.data.values.map(point => ({ date: point.datetime, close: parseFloat(point.close) }));
-    } else {
-      console.error('Unexpected API response structure:', response.data);
-      return [];
-    }
-  } catch (error) {
-    console.error('Error fetching data:', error);
-    return [];
-  }
-};
 
 const calculateMonthlyReturns = (data) => {
   let returns = [];
@@ -55,87 +21,65 @@ const convertToCumulativeReturns = (returns) => {
   return cumulativeReturns;
 };
 
-const alignDataByDate = (data1, data2) => {
-  const dates1 = data1.map(d => d.date);
-  const dates2 = new Set(data2.map(d => d.date));
-  const alignedData1 = data1.filter(d => dates2.has(d.date));
-  const alignedData2 = data2.filter(d => dates1.includes(d.date));
-  return [alignedData1, alignedData2];
-};
-
-const getColor = (index) => {
-  const colors = [
-    'red', 'green', 'blue', 'orange', 'purple', 'brown', 'pink', 'gray', 'cyan', 'magenta'
-  ];
-  return colors[index % colors.length];
-};
-
-const ReturnStreamChart = ({ returnStream, apiKey, index }) => {
-  const [data, setData] = useState([]);
-  const [labels, setLabels] = useState([]);
+const ReturnStreamChart = ({ returnStream, data }) => {
+  const [chartData, setChartData] = useState([]);
   const [isCollapsed, setIsCollapsed] = useState(true);
 
   useEffect(() => {
-    const fetchDataForChart = async () => {
-      const data1 = await fetchData(returnStream.returnStream1, apiKey);
-      const sortedData1 = data1.sort((a, b) => new Date(a.date) - new Date(b.date));
-      const returns1 = calculateMonthlyReturns(sortedData1);
-
-      if (returnStream.returnStream2) {
-        const data2 = await fetchData(returnStream.returnStream2, apiKey);
-        const sortedData2 = data2.sort((a, b) => new Date(a.date) - new Date(b.date));
-        const [alignedData1, alignedData2] = alignDataByDate(sortedData1, sortedData2);
-
-        if (alignedData1.length === alignedData2.length) {
-          const returns2 = calculateMonthlyReturns(alignedData2);
-          const combinedReturns = returns1.map((ret, idx) => ret - returns2[idx]);
-          setLabels(alignedData1.map(point => point.date));
-          setData(convertToCumulativeReturns(combinedReturns));
-        } else {
-          console.error('Aligned data lengths do not match');
-        }
-      } else {
-        setLabels(sortedData1.map(point => point.date));
-        setData(convertToCumulativeReturns(returns1));
-      }
+    const processData = () => {
+      const sortedData = data.sort((a, b) => new Date(a.date) - new Date(b.date));
+      const returns = calculateMonthlyReturns(sortedData);
+      const cumulativeReturns = convertToCumulativeReturns(returns);
+      const chartData = sortedData.map((d, i) => ({ date: d.date, value: cumulativeReturns[i] }));
+      setChartData(chartData);
     };
 
-    fetchDataForChart();
-  }, [returnStream, apiKey]);
+    processData();
+  }, [data]);
 
   const toggleCollapse = () => {
     setIsCollapsed(!isCollapsed);
   };
 
-  const generateChartData = () => {
-    const datasets = [
-      {
-        label: returnStream.description,
-        data: data,
-        borderColor: getColor(index),
-        borderWidth: 1,
-      }
-    ];
-    return { labels, datasets };
-  };
-
   return (
-    <div className="return-stream-chart">
-      <button className="collapse-button" onClick={toggleCollapse}>
+    <Box className="return-stream-chart">
+      <Button className="collapse-button" onClick={toggleCollapse} variant="contained">
         {isCollapsed ? 'Expand' : 'Collapse'} Chart
-      </button>
-      <div className="return-stream-summary">
-        <span>{returnStream.returnStream1}</span>
-        <span>{returnStream.returnStream2 ? ` - ${returnStream.returnStream2}` : ''}</span>
-        <span>{returnStream.description}</span>
-      </div>
+      </Button>
+      <Box className="return-stream-summary" sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 2 }}>
+        <Typography>{returnStream.returnStream1}</Typography>
+        <Typography>{returnStream.description}</Typography>
+      </Box>
       {!isCollapsed && (
-        <div className="chart-container">
-          <Line data={generateChartData()} />
-        </div>
+        <Box className="chart-container" sx={{ marginTop: 3 }}>
+          <LineChart
+            xAxis={[{ data: chartData.map(d => d.date), dataKey: 'date' }]}
+            series={[
+              {
+                data: chartData.map(d => d.value),
+                dataKey: 'value',
+              },
+            ]}
+            height={400}
+            width="100%"
+          />
+        </Box>
       )}
-    </div>
+    </Box>
   );
+};
+
+ReturnStreamChart.propTypes = {
+  returnStream: PropTypes.shape({
+    returnStream1: PropTypes.string.isRequired,
+    description: PropTypes.string.isRequired,
+  }).isRequired,
+  data: PropTypes.arrayOf(
+    PropTypes.shape({
+      date: PropTypes.string.isRequired,
+      close: PropTypes.number.isRequired,
+    })
+  ).isRequired,
 };
 
 export default ReturnStreamChart;

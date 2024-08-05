@@ -1,19 +1,11 @@
-.paste-area {
-    width: 100%;
-    min-height: 150px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-  }
-  
-  .placeholder-text {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    padding: 10px;
-    color: #aaa;
-    pointer-events: none;
-  }
-  
+.clear-button {
+  margin-top: 16px;
+  background-color: seafoamgreen;
+  color: white;
+  font-family: Arial, sans-serif;
+  text-transform: none; /* Prevents all caps */
+}
+
+.clear-button:hover {
+  background-color: darkgreen;
+}
