@@ -1,7 +1,7 @@
 import React from 'react';
 import { Line } from 'react-chartjs-2';
 import { Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, TimeScale } from 'chart.js';
-import { Button, IconButton } from '@mui/material';
+import { IconButton } from '@mui/material';
 import { SaveAlt as SaveAltIcon, FileCopy as FileCopyIcon, Image as ImageIcon } from '@mui/icons-material';
 import DownloadIcon from '@mui/icons-material/Download';
 
@@ -25,15 +25,17 @@ const colorPalette = [
   'rgba(255, 99, 132, 1)'
 ];
 
-const LineChartComponent = ({ chartData, makeCumulative}) => {
+const LineChartComponent = ({ chartData }) => {
   const chartRef = React.useRef(null);
+
+  const multiplyDataBy100 = (data) => data.map(value => value * 100);
 
   const downloadCSV = () => {
     let csvContent = "data:text/csv;charset=utf-8,";
     csvContent += "Date," + chartData.datasets.map(dataset => dataset.label).join(",") + "\n";
 
     chartData.labels.forEach((label, index) => {
-      const row = [label, ...chartData.datasets.map(dataset => dataset.data[index])].join(",");
+      const row = [label, ...chartData.datasets.map(dataset => dataset.data[index] * 100)].join(","); // Multiply data by 100
       csvContent += row + "\n";
     });
 
@@ -46,14 +48,6 @@ const LineChartComponent = ({ chartData, makeCumulative}) => {
     document.body.removeChild(link);
   };
 
-  const copyImage = async () => {
-    const canvas = await html2canvas(chartRef.current);
-    canvas.toBlob(blob => {
-      const item = new ClipboardItem({ "image/png": blob });
-      navigator.clipboard.write([item]);
-    });
-  };
-
   const downloadImage = async () => {
     const canvas = await html2canvas(chartRef.current);
     canvas.toBlob(blob => {
@@ -64,6 +58,7 @@ const LineChartComponent = ({ chartData, makeCumulative}) => {
   const generateChartData = () => {
     const datasetsWithDefaults = chartData.datasets.map((dataset, index) => ({
       ...dataset,
+      data: multiplyDataBy100(dataset.data), // Multiply data by 100
       borderColor: dataset.borderColor || colorPalette[index % colorPalette.length],
     }));
 
@@ -87,6 +82,20 @@ const LineChartComponent = ({ chartData, makeCumulative}) => {
       y: {
         title: {
           display: false,
+        },
+        ticks: {
+          callback: function(value) {
+            return value.toFixed(2) + '%';  // Convert to percentage with 2 decimal places
+          }
+        },
+        grid: {
+          drawOnChartArea: true,  // Ensure grid lines are drawn
+          color: function(context) {
+            if (context.tick.value === 0) {
+              return '#000000';  // Highlight zero line with a different color
+            }
+            return 'rgba(0, 0, 0, 0.1)';
+          }
         }
       }
     },
@@ -95,8 +104,19 @@ const LineChartComponent = ({ chartData, makeCumulative}) => {
         display: true,
       },
       title: {
-        display: false,
+        display: !!chartData.title,  // Only display the title if it exists in the chartData
+        text: chartData.title,  // Set the title text from chartData
+        position: 'top',  // Position can be 'top', 'left', 'bottom', 'right'
+        font: {
+          size: 16  // Set font size (optional)
+        }
       }
+    },
+    elements: {
+      line: {
+        tension: 0.25,
+      }, 
+      point: { radius: 0 }
     }
   };
 

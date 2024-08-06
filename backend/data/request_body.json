@@ -1,0 +1,285 @@
+{
+    "fund": {
+        "description": "GSAM",
+        "pastedData": [
+            {
+                "id": 1,
+                "date": "2021-01-31",
+                "return": "0.04253800"
+            },
+            {
+                "id": 2,
+                "date": "2021-02-28",
+                "return": "0.00905600"
+            },
+            {
+                "id": 3,
+                "date": "2021-03-31",
+                "return": "-0.03363300"
+            },
+            {
+                "id": 4,
+                "date": "2021-04-30",
+                "return": "0.02182200"
+            },
+            {
+                "id": 5,
+                "date": "2021-05-31",
+                "return": "0.02192900"
+            },
+            {
+                "id": 6,
+                "date": "2021-06-30",
+                "return": "0.02519300"
+            },
+            {
+                "id": 7,
+                "date": "2021-07-31",
+                "return": "-0.05359000"
+            },
+            {
+                "id": 8,
+                "date": "2021-08-31",
+                "return": "0.02546800"
+            },
+            {
+                "id": 9,
+                "date": "2021-09-30",
+                "return": "-0.04293400"
+            },
+            {
+                "id": 10,
+                "date": "2021-10-31",
+                "return": "0.00866300"
+            },
+            {
+                "id": 11,
+                "date": "2021-11-30",
+                "return": "-0.04505100"
+            },
+            {
+                "id": 12,
+                "date": "2021-12-31",
+                "return": "0.00491200"
+            },
+            {
+                "id": 13,
+                "date": "2022-01-31",
+                "return": "-0.04609300"
+            },
+            {
+                "id": 14,
+                "date": "2022-02-28",
+                "return": "-0.05601300"
+            },
+            {
+                "id": 15,
+                "date": "2022-03-31",
+                "return": "-0.03769700"
+            },
+            {
+                "id": 16,
+                "date": "2022-04-30",
+                "return": "-0.07397400"
+            },
+            {
+                "id": 17,
+                "date": "2022-05-31",
+                "return": "-0.00243800"
+            },
+            {
+                "id": 18,
+                "date": "2022-06-30",
+                "return": "-0.07306700"
+            },
+            {
+                "id": 19,
+                "date": "2022-07-31",
+                "return": "0.00373700"
+            },
+            {
+                "id": 20,
+                "date": "2022-08-31",
+                "return": "-0.01089300"
+            },
+            {
+                "id": 21,
+                "date": "2022-09-30",
+                "return": "-0.11470800"
+            },
+            {
+                "id": 22,
+                "date": "2022-10-31",
+                "return": "-0.05088500"
+            },
+            {
+                "id": 23,
+                "date": "2022-11-30",
+                "return": "0.14745900"
+            },
+            {
+                "id": 24,
+                "date": "2022-12-31",
+                "return": "-0.01477000"
+            },
+            {
+                "id": 25,
+                "date": "2023-01-31",
+                "return": "0.10011200"
+            },
+            {
+                "id": 26,
+                "date": "2023-02-28",
+                "return": "-0.06612800"
+            },
+            {
+                "id": 27,
+                "date": "2023-03-31",
+                "return": "0.01927200"
+            },
+            {
+                "id": 28,
+                "date": "2023-04-30",
+                "return": "-0.01967900"
+            },
+            {
+                "id": 29,
+                "date": "2023-05-31",
+                "return": "-0.01919200"
+            },
+            {
+                "id": 30,
+                "date": "2023-06-30",
+                "return": "0.04382100"
+            },
+            {
+                "id": 31,
+                "date": "2023-07-31",
+                "return": "0.03995400"
+            },
+            {
+                "id": 32,
+                "date": "2023-08-31",
+                "return": "-0.05356200"
+            },
+            {
+                "id": 33,
+                "date": "2023-09-30",
+                "return": "-0.02842300"
+            },
+            {
+                "id": 34,
+                "date": "2023-10-31",
+                "return": "-0.03562100"
+            },
+            {
+                "id": 35,
+                "date": "2023-11-30",
+                "return": "0.07105500"
+            },
+            {
+                "id": 36,
+                "date": "2023-12-31",
+                "return": "0.02959900"
+            },
+            {
+                "id": 37,
+                "date": "2024-01-31",
+                "return": "-0.03316900"
+            },
+            {
+                "id": 38,
+                "date": "2024-02-29",
+                "return": "0.05031300"
+            },
+            {
+                "id": 39,
+                "date": "2024-03-31",
+                "return": "0.02718300"
+            },
+            {
+                "id": 40,
+                "date": "2024-04-30",
+                "return": "-0.00345100"
+            },
+            {
+                "id": 41,
+                "date": "2024-05-31",
+                "return": "0.00641000"
+            }
+        ]
+    },
+    "benchmark": {
+        "description": "ACWI",
+        "source": "MSCI ACWI TR Net USD"
+    },
+    "residual_return_streams": [
+        {
+            "description": "Equity",
+            "source": "MSCI ACWI TR Gross USD",
+            "residualization": []
+        },
+        {
+            "description": "Interest Rates",
+            "source": "Bloomberg Global Aggregate - Sovereign USD",
+            "residualization": []
+        },
+        {
+            "description": "Credit",
+            "source": "ICE BofA Global Corporate Index",
+            "residualization": [
+                "Equity",
+                "Interest Rates"
+            ]
+        },
+        {
+            "description": "Emerging Markets",
+            "source": "MSCI EM TR Gross USD",
+            "residualization": [
+                "Equity",
+                "Interest Rates",
+                "Credit"
+            ]
+        },
+        {
+            "description": "Momentum",
+            "source": "MSCI ACWI Momentum TR Gross USD",
+            "residualization": [
+                "Equity",
+                "Interest Rates",
+                "Credit",
+                "Emerging Markets"
+            ]
+        },
+        {
+            "description": "Quality",
+            "source": "MSCI ACWI Quality TR Gross USD",
+            "residualization": [
+                "Equity",
+                "Interest Rates",
+                "Credit",
+                "Emerging Markets"
+            ]
+        },
+        {
+            "description": "Small Cap",
+            "source": "MSCI ACWI Small Cap TR Gross USD",
+            "residualization": [
+                "Equity",
+                "Interest Rates",
+                "Credit",
+                "Emerging Markets"
+            ]
+        },
+        {
+            "description": "Value",
+            "source": "MSCI ACWI Value TR Gross USD",
+            "residualization": [
+                "Equity",
+                "Interest Rates",
+                "Credit",
+                "Emerging Markets"
+            ]
+        }
+    ]
+}

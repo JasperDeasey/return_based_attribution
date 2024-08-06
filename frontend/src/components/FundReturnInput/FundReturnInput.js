@@ -28,7 +28,8 @@ const FundReturnInput = ({ fund, onDescriptionChange, updateFundReturns }) => {
     const cumulatives = returns.reduce((acc, curr, i) => {
       acc.push((i === 0 ? 1 : acc[i-1]) * (1 + curr));
       return acc;
-    }, []);
+    }, []).map(value => (value - 1)); // Convert to percentage format
+  
     const formattedData = {
       labels: rows.map(row => row.date),
       datasets: [{
@@ -39,7 +40,8 @@ const FundReturnInput = ({ fund, onDescriptionChange, updateFundReturns }) => {
         tension: 0.1
       }]
     };
-    setCumulativeReturn(cumulatives[cumulatives.length - 1].toFixed(4) - 1); // Last item, adjusted for base 1
+  
+    setCumulativeReturn((cumulatives[cumulatives.length - 1] / 100).toFixed(4) - 1); // Adjust for base 1
     setChartData(formattedData);
     updateFundReturns(rows); // Updating the state at the parent level
   };

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Typography, Box, Button, IconButton } from '@mui/material';
+import { Typography, Box, Button, IconButton, CircularProgress } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RegressionAccordion from '../../components/RegressionAccordion/RegressionAccordion';
 import FundReturnInput from '../../components/FundReturnInput';
@@ -8,12 +8,12 @@ import BenchmarkInputs from '../../components/BenchmarkInputs';
 import './SelectComparisons.css';
 
 const initialData = {
-  fund: { description: 'Input Fund Name', pastedData: [] },
+  fund: { description: 'Input Fund Name', pastedData: []},
   benchmark: { description: 'ACWI', source: 'MSCI ACWI TR Net USD' },
   residual_return_streams: [
     { description: 'Equity', source: 'MSCI ACWI TR Gross USD', residualization: [] },
     { description: 'Interest Rates', source: 'Bloomberg Global Aggregate - Sovereign USD', residualization: [] },
-    { description: 'Credit', source: 'Bloomberg US Corporate Index', residualization: ['Equity', 'Interest Rates'] },
+    { description: 'Credit', source: 'ICE BofA Global Corporate Index', residualization: ['Equity', 'Interest Rates'] },
     { description: 'Emerging Markets', source: 'MSCI EM TR Gross USD', residualization: ['Equity', 'Interest Rates', 'Credit'] },
     { description: 'Momentum', source: 'MSCI ACWI Momentum TR Gross USD', residualization: ['Equity', 'Interest Rates', 'Credit', 'Emerging Markets'] },
     { description: 'Quality', source: 'MSCI ACWI Quality TR Gross USD', residualization: ['Equity', 'Interest Rates', 'Credit', 'Emerging Markets'] },
@@ -25,32 +25,39 @@ const initialData = {
 const SelectComparisons = () => {
   const navigate = useNavigate();
   const [data, setData] = useState(initialData);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     console.log("State updated:", data);
   }, [data]);
 
   const handleSubmit = () => {
-    const url = 'http://localhost:5000/submit-data';
+    setLoading(true);
+    const url = 'http://127.0.0.1:5000/submit-data';  // Ensure this matches your backend address
+  
     fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data)  // 'data' is now properly defined in this scope
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)  // Ensure 'data' is defined in your component
     })
     .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.json();
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
     })
-    .then(responseData => {
-      console.log('Success:', responseData);
-      navigate('/analysis', { state: { data: responseData } });  // Navigate and pass data as state to /analysis route
+    .then(data => {
+        console.log('Processed Data:', data);
+        // Use navigate to move to the /analysis route with data as state
+        navigate('/analysis', { state: { data } });
     })
-    .catch((error) => {
-      console.error('Error:', error);
+    .catch(error => {
+        console.error('Error:', error);
+    })
+    .finally(() => {
+        setLoading(false);
     });
   };
 
@@ -112,7 +119,6 @@ const SelectComparisons = () => {
       residual_return_streams: [...prevData.residual_return_streams, { description: `New Residual ${prevData.residual_return_streams.length + 1}`, source: '', residualization: [] }]
     }));
   };
-
 
   const handlePastedDataUpdate = (newData) => {
     console.log(newData)
@@ -177,7 +183,9 @@ const SelectComparisons = () => {
         </IconButton>
         </Box>
       </div>
-      <Button variant="contained" color="primary" className="submit-button" onClick={handleSubmit}>Submit</Button>
+      <Button variant="contained" color="primary" className="submit-button" onClick={handleSubmit} disabled={loading}>
+        {loading ? <CircularProgress size={24} color="inherit" /> : 'Submit'}
+      </Button>
     </Box>
   );
 };

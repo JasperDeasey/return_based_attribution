@@ -15,7 +15,7 @@ const ReturnStreamPaste = ({ onClear, onSubmit }) => {
 
   const handleClear = () => {
     setRows([{ id: 1, date: 'YYYY-MM-DD', return: '0.0XX' }]);
-    onClear()
+    onClear();
   };
 
   const handlePaste = useCallback((event) => {
@@ -41,8 +41,8 @@ const ReturnStreamPaste = ({ onClear, onSubmit }) => {
       <DataGrid
         rows={rows}
         columns={columns}
-        pageSize={5}
-        rowsPerPageOptions={[5]}
+        pageSize={rows.length}
+        rowsPerPageOptions={[rows.length]}
         onCellClick={() => document.activeElement.blur()}
         sx={{ height: 300, '& .MuiDataGrid-footerContainer': { justifyContent: 'space-between' } }}
       />
@@ -59,6 +59,7 @@ const ReturnStreamPaste = ({ onClear, onSubmit }) => {
 };
 
 ReturnStreamPaste.propTypes = {
+  onClear: PropTypes.func.isRequired,
   onSubmit: PropTypes.func.isRequired,
 };
 

@@ -18,6 +18,9 @@ const convertToCumulativeReturns = (returns) => {
   for (let i = 0; i < returns.length; i++) {
     cumulativeReturns.push(cumulativeReturns[i] * (1 + returns[i]));
   }
+  for (let i = 0; i < cumulativeReturns.length; i++) {
+    cumulativeReturns[i] = (cumulativeReturns[i] - 1) * 100;
+  }
   return cumulativeReturns;
 };
 
