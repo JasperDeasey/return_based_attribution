@@ -1,5 +1,5 @@
 import os
-from flask import Flask, send_from_directory
+from flask import Flask
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
@@ -8,7 +8,7 @@ from api.routes import configure_routes
 load_dotenv()  # Load environment variables from .env file
 
 def create_app():
-    app = Flask(__name__, static_folder='../frontend/build')
+    app = Flask(__name__)
     CORS(app)  # Enable CORS for all routes and origins
 
     # Get the database URL from the environment variable
@@ -23,14 +23,6 @@ def create_app():
     db = SQLAlchemy(app)
     
     configure_routes(app)
-
-    @app.route('/', defaults={'path': ''})
-    @app.route('/<path:path>')
-    def serve(path):
-        if path != "" and os.path.exists(app.static_folder + '/' + path):
-            return send_from_directory(app.static_folder, path)
-        else:
-            return send_from_directory(app.static_folder, 'index.html')
 
     return app
 
