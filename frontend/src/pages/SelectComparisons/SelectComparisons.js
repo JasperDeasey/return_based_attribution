@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Typography, Box, Button, IconButton, CircularProgress } from '@mui/material';
+import { Typography, Box, Button, IconButton, CircularProgress, Snackbar, Alert } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RegressionAccordion from '../../components/RegressionAccordion/RegressionAccordion';
 import FundReturnInput from '../../components/FundReturnInput';
@@ -8,7 +8,7 @@ import BenchmarkInputs from '../../components/BenchmarkInputs';
 import './SelectComparisons.css';
 
 const initialData = {
-  fund: { description: 'Input Fund Name', pastedData: []},
+  fund: { description: 'Input Fund Name', pastedData: [] },
   benchmark: { description: 'ACWI', source: 'MSCI ACWI TR Net USD' },
   residual_return_streams: [
     { description: 'Equity', source: 'MSCI ACWI TR Gross USD', residualization: [] },
@@ -26,39 +26,53 @@ const SelectComparisons = () => {
   const navigate = useNavigate();
   const [data, setData] = useState(initialData);
   const [loading, setLoading] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
 
   useEffect(() => {
     console.log("State updated:", data);
   }, [data]);
 
+  const handleSnackbarClose = () => {
+    setSnackbarOpen(false);
+  };
+
   const handleSubmit = () => {
+    if (data.fund.pastedData.length === 0) {
+      setSnackbarMessage("Please paste fund returns above");
+      setSnackbarOpen(true);
+      return;
+    }
+
     setLoading(true);
+    setSnackbarMessage("This may take a few minutes...");
+    setSnackbarOpen(true);
+
     const url = 'http://127.0.0.1:5000/submit-data';  // Ensure this matches your backend address
-  
+
     fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)  // Ensure 'data' is defined in your component
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data)
     })
-    .then(response => {
+      .then(response => {
         if (!response.ok) {
-            throw new Error('Network response was not ok');
+          throw new Error('Network response was not ok');
         }
         return response.json();
-    })
-    .then(data => {
+      })
+      .then(data => {
         console.log('Processed Data:', data);
-        // Use navigate to move to the /analysis route with data as state
         navigate('/analysis', { state: { data } });
-    })
-    .catch(error => {
+      })
+      .catch(error => {
         console.error('Error:', error);
-    })
-    .finally(() => {
+      })
+      .finally(() => {
         setLoading(false);
-    });
+      });
   };
 
   const handleFundDescriptionChange = (field, value) => {
@@ -121,7 +135,7 @@ const SelectComparisons = () => {
   };
 
   const handlePastedDataUpdate = (newData) => {
-    console.log(newData)
+    console.log(newData);
     setData(prevData => ({
       ...prevData,
       fund: {
@@ -166,26 +180,31 @@ const SelectComparisons = () => {
               availableDescriptions={availableDescriptions}
             />
           ))}
-        <IconButton 
-          color="primary" 
-          onClick={handleAddResidual}
-          sx={{
-            backgroundColor: '#b2dfdb',  // A softer shade of teal
-            color: 'white',
-            '&:hover': {
-              backgroundColor: '#82ada9',  // A darker, muted teal for hover
-            },
-            mt: 1,
-            float: 'right'  // Aligns the button to the right
-          }}
-        >
-          <AddIcon />
-        </IconButton>
+          <IconButton
+            color="primary"
+            onClick={handleAddResidual}
+            sx={{
+              backgroundColor: '#b2dfdb',  // A softer shade of teal
+              color: 'white',
+              '&:hover': {
+                backgroundColor: '#82ada9',  // A darker, muted teal for hover
+              },
+              mt: 1,
+              float: 'right'  // Aligns the button to the right
+            }}
+          >
+            <AddIcon />
+          </IconButton>
         </Box>
       </div>
       <Button variant="contained" color="primary" className="submit-button" onClick={handleSubmit} disabled={loading}>
         {loading ? <CircularProgress size={24} color="inherit" /> : 'Submit'}
       </Button>
+      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
+        <Alert onClose={handleSnackbarClose} severity="info" sx={{ width: '100%' }}>
+          {snackbarMessage}
+        </Alert>
+      </Snackbar>
     </Box>
   );
 };

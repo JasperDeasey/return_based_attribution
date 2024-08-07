@@ -28,6 +28,7 @@ const RegressionAccordion = ({
 
   useEffect(() => {
     setDesc(returnStream.description);
+    setSelectedIndex(returnStream.source || '');
     setResiduals(returnStream.residualization);
   }, [returnStream]);
 
@@ -35,9 +36,9 @@ const RegressionAccordion = ({
     setExpanded(isExpanded);
   };
 
-  const handleSelectIndex = (index) => {
-    setSelectedIndex(index);
-    handleDataChange(index, 'source', index);
+  const handleSelectIndex = (selectedIndex) => {
+    setSelectedIndex(selectedIndex);
+    handleDataChange(index, 'source', selectedIndex);
   };
 
   const handleAddResidual = (residual) => {

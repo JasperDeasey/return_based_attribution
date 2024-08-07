@@ -5,8 +5,10 @@ from sklearn.linear_model import LinearRegression
 from sqlalchemy import create_engine, Column, String, Date, Float, PrimaryKeyConstraint, text
 import json
 import statsmodels.api as sm
-from sklearn.linear_model import Lasso, Ridge
+from sklearn.linear_model import Lasso, LassoCV, RidgeCV
 from sklearn.preprocessing import StandardScaler
+from sklearn.model_selection import GridSearchCV
+
 
 
 def process_data(data):
@@ -49,80 +51,64 @@ def annualized_return(returns):
 def run_regression(returns_df, regression_df, window, model_type, alpha=5):
     results = {
         "labels": [],
-        "datasets": []
+        "datasets": [
+            {"label": "Residuals", "data": [], "borderColor": "color-residuals", "fill": False},
+            {"label": "Total Return", "data": [], "borderColor": "color-total", "fill": False},
+            {"label": "Difference from Compounding / Other", "data": [], "borderColor": "color-difference", "fill": False}
+        ]
     }
+    # Append datasets for each factor
     for j, factor in enumerate(regression_df.columns):
-        results["datasets"].append({
+        results["datasets"].insert(j, {
             "label": factor + " Contribution",
             "data": [],
             "borderColor": f"color-{j}",
             "fill": False
         })
-    results["datasets"].append({
-        "label": "Residuals",
-        "data": [],
-        "borderColor": "color-residuals",
-        "fill": False
-    })
-    results["datasets"].append({
-        "label": "Total Return",
-        "data": [],
-        "borderColor": "color-total",
-        "fill": False
-    })
-
-    scaler = StandardScaler()
 
     for i in range(window, len(returns_df) + 1):
         start_idx = i - window
         end_idx = i
 
-        window_returns = returns_df.iloc[start_idx:end_idx]
+        window_returns = returns_df.iloc[start_idx:end_idx].squeeze()
         window_factors = regression_df.iloc[start_idx:end_idx]
 
         y = window_returns.values.flatten()
         X = window_factors.values
-        X_scaled = scaler.fit_transform(X)
 
+        model = None
         if model_type == "OLS":
-            X_scaled_with_const = sm.add_constant(X_scaled)  # Add intercept after scaling
-            model = sm.OLS(y, X_scaled_with_const).fit()
-            betas = model.params[1:]  # exclude intercept
-            intercept = model.params[0]
+            model = sm.OLS(y, X).fit()  # No intercept added
         elif model_type == "Ridge":
-            model = Ridge(alpha=alpha).fit(X_scaled, y)
-            betas = model.coef_
-            intercept = model.intercept_
+            alphas = np.logspace(-4, 4, 50)
+            model = RidgeCV(alphas=alphas, fit_intercept=False, cv=3).fit(X, y)
         elif model_type == "Lasso":
-            lasso_cv = LassoCV(alphas=np.logspace(-4, 1, 50), cv=5, max_iter=10000).fit(X_scaled, y)
-            model = Lasso(alpha=lasso_cv.alpha_).fit(X_scaled, y)
-            betas = model.coef_
-            intercept = model.intercept_
+            lasso_cv = LassoCV(alphas=np.logspace(-4, 1, 50), cv=3, max_iter=10000, fit_intercept=False).fit(X, y)
+            model = Lasso(alpha=lasso_cv.alpha_, fit_intercept=False).fit(X, y)
 
-        # Scale betas back to the original scale
-        betas = betas / scaler.scale_
-
-        predictions = model.predict(X_scaled_with_const if model_type == "OLS" else X_scaled)
+        betas = model.coef_ if model_type != "OLS" else model.params
+        predictions = model.predict(X)
         residuals = y - predictions
 
         date = returns_df.index[end_idx - 1].strftime('%Y-%m-%d')
         results["labels"].append(date)
-        total_return = annualized_return(window_returns)
-        results["datasets"][-1]["data"].append(float(total_return) * 100)
+        total_return = annualized_return(pd.Series(window_returns))
+        factor_contributions = [beta * annualized_return(window_factors.iloc[:, j]) for j, beta in enumerate(betas)]
 
-        factor_contributions = []
-        for j, factor in enumerate(regression_df.columns):
-            factor_data = window_factors.iloc[:, j]
-            factor_annualized_return = annualized_return(factor_data)
-            beta = betas[j]
-            factor_contribution = beta * factor_annualized_return
-            factor_contributions.append(factor_contribution)
-            results["datasets"][j]["data"].append(float(factor_contribution))
+        # Sum of contributions
+        total_factor_contributions = sum(factor_contributions)
+        residual_contribution = annualized_return(pd.Series(residuals))
+        difference_from_compounding = total_return - (total_factor_contributions + residual_contribution)
 
-        residual_contribution = total_return - np.sum(factor_contributions)
-        results["datasets"][-2]["data"].append(float(residual_contribution))
+        # Append data to results
+        for idx, contribution in enumerate(factor_contributions):
+            results["datasets"][idx]["data"].append(float(contribution))
+        results["datasets"][-3]["data"].append(float(residual_contribution))
+        results["datasets"][-2]["data"].append(float(total_return))
+        results["datasets"][-1]["data"].append(float(difference_from_compounding))
 
     return results
+
 
 
 def format_json(data_series, label):
@@ -181,8 +167,7 @@ def create_cone_chart(active_return_df):
     best_fit_line[0] = 0  # Ensuring starts at 0
 
     # Calculate annualized alpha off of actual cumulative returns
-    annualized_alpha = np.power(1 + cumulative_excess_return[-1], 12 / len(cumulative_excess_return)) - 1
-
+    annualized_alpha = np.power(1 + cumulative_excess_return.iloc[-1], 12 / len(cumulative_excess_return)) - 1
     # Calculate tracking error from monthly excess returns
     std_dev_excess_return = np.std(monthly_excess_return)
     tracking_error_annualized = std_dev_excess_return * np.sqrt(12)
@@ -206,7 +191,7 @@ def create_cone_chart(active_return_df):
         "datasets": [
             {
                 "label": "Actual Cumulative Alpha",
-                "data": [float(cumulative_excess_return[idx]) for idx in range(len(dates))],
+                "data": [float(cumulative_excess_return.iloc[idx]) for idx in range(len(dates))],
                 "borderColor": "red",
                 "fill": False
             },
@@ -255,7 +240,8 @@ def annualized_rolling_return(returns, window, periods_per_year=12):
 
 
 def create_return_dfs(data):
-    engine = create_engine('sqlite:///data/benchmark_returns.db')
+
+
     fund_description = data['fund']['description']
     benchmark_description = data['benchmark']['description']
 
@@ -266,10 +252,19 @@ def create_return_dfs(data):
     fund_return_df['date'] = fund_return_df['date'] + pd.offsets.MonthEnd(0)
     fund_return_df.set_index('date', inplace=True)
 
-    benchmark_return_df = pd.read_sql_query(
-        f"SELECT * FROM benchmark_returns WHERE benchmark_name='{data['benchmark']['source']}'", engine).rename(
-        columns={'return_rate': benchmark_description}).drop(columns=['benchmark_name'])
-    benchmark_return_df['date'] = pd.to_datetime(benchmark_return_df['date'])
+    try:
+        engine = create_engine('sqlite:///data/benchmark_returns.db')
+        benchmark_return_df = pd.read_sql_query(
+            f"SELECT * FROM benchmark_returns WHERE benchmark_name='{data['benchmark']['source']}'", engine).rename(
+            columns={'return_rate': benchmark_description}).drop(columns=['benchmark_name'])
+        benchmark_return_df['date'] = pd.to_datetime(benchmark_return_df['date'])
+    except Exception as e:
+        engine = create_engine('sqlite:///../data/benchmark_returns.db')
+        benchmark_return_df = pd.read_sql_query(
+            f"SELECT * FROM benchmark_returns WHERE benchmark_name='{data['benchmark']['source']}'", engine).rename(
+            columns={'return_rate': benchmark_description}).drop(columns=['benchmark_name'])
+        benchmark_return_df['date'] = pd.to_datetime(benchmark_return_df['date'])
+
     benchmark_return_df['date'] = benchmark_return_df['date'] + pd.offsets.MonthEnd(0)
     benchmark_return_df.set_index('date', inplace=True)
     benchmark_return_df = benchmark_return_df.reindex(fund_return_df.index)

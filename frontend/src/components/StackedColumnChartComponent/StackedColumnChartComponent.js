@@ -11,13 +11,16 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, LineElement, Title, Too
 const StackedColumnChartComponent = ({ chartData }) => {
   const chartRef = React.useRef(null);
 
-  const colors = [
-    '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#FF6384', '#36A2EB', '#FF6384'
+  const pastelColors = [
+    '#FFB6C1', '#87CEFA', '#FFDAB9', '#98FB98', '#DDA0DD', '#FFA07A', '#E6E6FA', '#FFE4B5', '#B0E0E6', '#FAFAD2', '#D8BFD8', '#FFD700'
   ];
 
-  const brightColor = '#FF0000';
+  const brightRed = '#FF0000';
+  const black = '#000000';
+  const lightGrey = '#D3D3D3';
+
   const residualColor = {
-    borderColor: brightColor,
+    borderColor: brightRed,
     backgroundColor: 'rgba(255, 0, 0, 0.5)',
     borderDash: [5, 5],
     borderWidth: 1.5
@@ -76,16 +79,25 @@ const StackedColumnChartComponent = ({ chartData }) => {
       } else if (dataset.label === 'Total Return') {
         return {
           ...dataset,
-          borderColor: '#000000',
+          data: dataset.data.map(value => value * 100),
+          borderColor: black,
           borderWidth: 2,
           fill: false,
           type: 'line'
+        };
+      } else if (dataset.label === 'Difference from Compounding / Other') {
+        return {
+          ...dataset,
+          data: dataset.data.map(value => value * 100),
+          borderColor: lightGrey,
+          backgroundColor: lightGrey,
+          borderWidth: 1
         };
       } else {
         return {
           ...dataset,
           data: dataset.data.map(value => value * 100),
-          backgroundColor: colors[index % colors.length],
+          backgroundColor: pastelColors[index % pastelColors.length],
           borderColor: dataset.borderColor,
           borderDash: dataset.borderDash || [],
           borderWidth: 1

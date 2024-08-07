@@ -17,4 +17,4 @@ def configure_routes(app):
         if data:
             data = analysis.process_data(data)
             return data
-        return {"error": "No data received"}
+        return {"error": "No data d"}
