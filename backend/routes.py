@@ -12,7 +12,7 @@ def configure_routes(app):
         processed_data = process_data(data)  # Process the data
         return jsonify(processed_data)  # Return the processed data
 
-    def process_data(data):
+    def process_data(data, engine):
         # Example data processing: append " processed" to each value
         if data:
             data = analysis.process_data(data)

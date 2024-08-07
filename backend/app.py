@@ -10,12 +10,6 @@ load_dotenv()  # Load environment variables from .env file
 def create_app():
     app = Flask(__name__, static_folder='../frontend/build')
     CORS(app)  # Enable CORS for all routes and origins
-
-    # Use DATABASE_URL from environment variables, with a default fallback
-    app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
-    db = SQLAlchemy(app)
     
     configure_routes(app)
 

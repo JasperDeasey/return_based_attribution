@@ -8,8 +8,10 @@ import statsmodels.api as sm
 from sklearn.linear_model import Lasso, LassoCV, RidgeCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV
+import os
+from dotenv import load_dotenv
 
-
+load_dotenv()
 
 def process_data(data):
     fund_return_df, benchmark_return_df, active_return_df, regression_df = create_return_dfs(data)
@@ -239,7 +241,7 @@ def annualized_rolling_return(returns, window, periods_per_year=12):
     return annualized_rolling
 
 
-def create_return_dfs(data):
+def create_return_dfs(data, engine):
 
 
     fund_description = data['fund']['description']
@@ -252,18 +254,17 @@ def create_return_dfs(data):
     fund_return_df['date'] = fund_return_df['date'] + pd.offsets.MonthEnd(0)
     fund_return_df.set_index('date', inplace=True)
 
-    try:
-        engine = create_engine('sqlite:///data/benchmark_returns.db')
-        benchmark_return_df = pd.read_sql_query(
-            f"SELECT * FROM benchmark_returns WHERE benchmark_name='{data['benchmark']['source']}'", engine).rename(
-            columns={'return_rate': benchmark_description}).drop(columns=['benchmark_name'])
-        benchmark_return_df['date'] = pd.to_datetime(benchmark_return_df['date'])
-    except Exception as e:
-        engine = create_engine('sqlite:///../data/benchmark_returns.db')
-        benchmark_return_df = pd.read_sql_query(
-            f"SELECT * FROM benchmark_returns WHERE benchmark_name='{data['benchmark']['source']}'", engine).rename(
-            columns={'return_rate': benchmark_description}).drop(columns=['benchmark_name'])
-        benchmark_return_df['date'] = pd.to_datetime(benchmark_return_df['date'])
+    uri = os.getenv("DATABASE_URL")
+    if uri.startswith("postgres://"):
+        uri = uri.replace("postgres://", "postgresql://")
+
+    engine = create_engine(uri, echo=True)
+
+    benchmark_return_df = pd.read_sql_query(
+        f"SELECT * FROM benchmark_returns WHERE benchmark_name='{data['benchmark']['source']}'", engine).rename(
+        columns={'return_rate': benchmark_description}).drop(columns=['benchmark_name'])
+    benchmark_return_df['date'] = pd.to_datetime(benchmark_return_df['date'])
+
 
     benchmark_return_df['date'] = benchmark_return_df['date'] + pd.offsets.MonthEnd(0)
     benchmark_return_df.set_index('date', inplace=True)
