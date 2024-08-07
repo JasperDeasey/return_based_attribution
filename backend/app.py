@@ -2,7 +2,8 @@ from flask import Flask, send_from_directory
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
-from backend.routes import configure_routes
+from routes import configure_routes
+import os
 
 load_dotenv()  # Load environment variables from .env file
 

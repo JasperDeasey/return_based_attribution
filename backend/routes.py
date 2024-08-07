@@ -1,6 +1,7 @@
 import json
 from flask import request, jsonify
 import api.analysis as analysis
+import os
 
 def configure_routes(app):
 
