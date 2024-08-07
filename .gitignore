@@ -1,6 +1,8 @@
 backend/data/benchmark_returns.db
 *.db
 .env
+backend/data/dumps.sql
+backend/data/dump.sql
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
