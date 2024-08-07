@@ -3,15 +3,22 @@ import pandas as pd
 from sklearn.linear_model import LassoCV
 from sklearn.linear_model import LinearRegression
 from sqlalchemy import create_engine, Column, String, Date, Float, PrimaryKeyConstraint, text
+from flask_sqlalchemy import SQLAlchemy
 import json
 import statsmodels.api as sm
 from sklearn.linear_model import Lasso, LassoCV, RidgeCV
 from sklearn.preprocessing import StandardScaler
 from sklearn.model_selection import GridSearchCV
 from dotenv import load_dotenv
+import os
 
 load_dotenv()  # Load environment variables from .env file
 
+# Create the database engine
+uri = os.getenv("DATABASE_URL")
+if uri and uri.startswith("postgres://"):
+    uri = uri.replace("postgres://", "postgresql://")
+engine = create_engine(uri)
 
 def process_data(data):
     fund_return_df, benchmark_return_df, active_return_df, regression_df = create_return_dfs(data)
@@ -242,10 +249,10 @@ def annualized_rolling_return(returns, window, periods_per_year=12):
 
 
 def create_return_dfs(data):
-
     fund_description = data['fund']['description']
     benchmark_description = data['benchmark']['description']
 
+    # Prepare fund return DataFrame
     fund_return_df = pd.DataFrame(data['fund']['pastedData'])
     fund_return_df['return'] = pd.to_numeric(fund_return_df['return'])
     fund_return_df = fund_return_df.drop(columns=['id']).rename(columns={'return': fund_description})
@@ -253,17 +260,14 @@ def create_return_dfs(data):
     fund_return_df['date'] = fund_return_df['date'] + pd.offsets.MonthEnd(0)
     fund_return_df.set_index('date', inplace=True)
 
-    # Get the database URL from the environment variable
-    uri = os.getenv("DATABASE_URL")
-    if uri and uri.startswith("postgres://"):
-        uri = uri.replace("postgres://", "postgresql://")
+    try:
+        # Fetch benchmark returns from the database
+        benchmark_return_df = pd.read_sql_query(
+            f"SELECT * FROM benchmark_returns WHERE benchmark_name='{data['benchmark']['source']}'", engine
+        ).rename(columns={'return_rate': benchmark_description}).drop(columns=['benchmark_name'])
+    except Exception as e:
+        raise Exception(f"Error fetching benchmark returns: {e}")
 
-    # Create the database engine
-    engine = create_engine(uri)
-
-    benchmark_return_df = pd.read_sql_query(
-        f"SELECT * FROM benchmark_returns WHERE benchmark_name='{data['benchmark']['source']}'", engine).rename(
-        columns={'return_rate': benchmark_description}).drop(columns=['benchmark_name'])
     benchmark_return_df['date'] = pd.to_datetime(benchmark_return_df['date'])
     benchmark_return_df['date'] = benchmark_return_df['date'] + pd.offsets.MonthEnd(0)
     benchmark_return_df.set_index('date', inplace=True)
@@ -279,25 +283,35 @@ def create_return_dfs(data):
     remaining_funds = []
     for regression_json in data['residual_return_streams']:
         if not regression_json['residualization']:
-            df = pd.read_sql_query(f"SELECT * FROM benchmark_returns WHERE benchmark_name='{regression_json['source']}'", engine)
-            df = df.rename(columns={'return_rate': regression_json['description']}).drop(columns=['benchmark_name'])
-            df['date'] = pd.to_datetime(df['date'])
-            df.set_index('date', inplace=True)
-            regression_df = regression_df.merge(df, left_index=True, right_index=True, how='left')
+            try:
+                df = pd.read_sql_query(
+                    f"SELECT * FROM benchmark_returns WHERE benchmark_name='{regression_json['source']}'", engine
+                )
+                df = df.rename(columns={'return_rate': regression_json['description']}).drop(columns=['benchmark_name'])
+                df['date'] = pd.to_datetime(df['date'])
+                df.set_index('date', inplace=True)
+                regression_df = regression_df.merge(df, left_index=True, right_index=True, how='left')
+            except Exception as e:
+                raise Exception(f"Error fetching regression data: {e}")
 
         elif set(regression_json['residualization']).issubset(set(regression_df.columns)):
-            df = pd.read_sql_query(f"SELECT * FROM benchmark_returns WHERE benchmark_name='{regression_json['source']}'", engine)
-            df = df.drop(columns=['benchmark_name'])
-            df['date'] = pd.to_datetime(df['date'])
-            df.set_index('date', inplace=True)
-            df = df.reindex(fund_return_df.index)
+            try:
+                df = pd.read_sql_query(
+                    f"SELECT * FROM benchmark_returns WHERE benchmark_name='{regression_json['source']}'", engine
+                )
+                df = df.drop(columns=['benchmark_name'])
+                df['date'] = pd.to_datetime(df['date'])
+                df.set_index('date', inplace=True)
+                df = df.reindex(fund_return_df.index)
 
-            y = df['return_rate']
-            X = regression_df[regression_json['residualization']]
-            X = sm.add_constant(X)
-            model = sm.OLS(y, X).fit()
-            residuals = model.resid
-            regression_df[regression_json['description']] = residuals
+                y = df['return_rate']
+                X = regression_df[regression_json['residualization']]
+                X = sm.add_constant(X)
+                model = sm.OLS(y, X).fit()
+                residuals = model.resid
+                regression_df[regression_json['description']] = residuals
+            except Exception as e:
+                raise Exception(f"Error processing regression data: {e}")
 
         else:
             remaining_funds.append(regression_json)
@@ -307,20 +321,23 @@ def create_return_dfs(data):
     while remaining_funds:
         i = j % (len(remaining_funds) - 1)
         if set(remaining_funds[i]['residualization']).issubset(set(regression_df.columns)):
-            df = pd.read_sql_query(
-                f"SELECT * FROM benchmark_returns WHERE benchmark_name='{remaining_funds[i]['source']}'",
-                engine)
-            df.rename(columns={'return_rate': remaining_funds[i]['description']}, inplace=True)
-            df['date'] = pd.to_datetime(df['date'])
-            df.set_index('date', inplace=True)
+            try:
+                df = pd.read_sql_query(
+                    f"SELECT * FROM benchmark_returns WHERE benchmark_name='{remaining_funds[i]['source']}'", engine
+                )
+                df.rename(columns={'return_rate': remaining_funds[i]['description']}, inplace=True)
+                df['date'] = pd.to_datetime(df['date'])
+                df.set_index('date', inplace=True)
 
-            y = df['return_rate']
-            X = regression_df[remaining_funds[i]['residualization']]
-            X = sm.add_constant(X)
-            model = sm.OLS(y, X).fit()
-            residuals = model.resid
-            regression_df[remaining_funds[i]['description']] = residuals
-            del remaining_funds[i]
+                y = df['return_rate']
+                X = regression_df[remaining_funds[i]['residualization']]
+                X = sm.add_constant(X)
+                model = sm.OLS(y, X).fit()
+                residuals = model.resid
+                regression_df[remaining_funds[i]['description']] = residuals
+                del remaining_funds[i]
+            except Exception as e:
+                raise Exception(f"Error processing remaining regression data: {e}")
         j += 1
         if j > max_tries:
             raise Exception(f"Residual returns could not be created for {remaining_funds}")

@@ -10,6 +10,7 @@ from sqlalchemy import create_engine, Column, String, Date, Float, PrimaryKeyCon
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy.dialects.sqlite import insert
 
+
 # Load API key from .env file
 load_dotenv()
 API_KEY = os.getenv('API_KEY')
