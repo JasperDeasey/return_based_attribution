@@ -23,10 +23,14 @@ const ReturnStreamPaste = ({ onClear, onSubmit }) => {
     const clipboardData = event.clipboardData.getData('Text');
     const parsedRows = clipboardData.split('\n').map((row, index) => {
       const [date, returnValue] = row.split('\t');
+      let cleanedReturnValue = returnValue.trim().replace(/\r$/, ''); // Remove trailing carriage return character
+      if (cleanedReturnValue.endsWith('%')) {
+        cleanedReturnValue = (parseFloat(cleanedReturnValue.slice(0, -1)) / 100).toString();
+      }
       return {
         id: index + 1,
         date: date.trim(), // Trims whitespace and line ending characters from the date
-        return: returnValue.trim().replace(/\r$/, '') // Removes only the trailing carriage return character from return value
+        return: cleanedReturnValue
       };
     });
     setRows(parsedRows);
