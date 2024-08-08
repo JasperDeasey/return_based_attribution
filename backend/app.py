@@ -50,10 +50,14 @@ def submit_data():
     else:
         return jsonify({"error": "No data provided"}), 400
 
-@app.route('/')
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
 @cross_origin()
-def serve():
-    return send_from_directory(app.static_folder, 'index.html')
+def serve(path):
+    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
