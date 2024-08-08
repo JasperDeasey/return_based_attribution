@@ -85,7 +85,7 @@ def run_regression(returns_df, regression_df, window, model_type, model_type_str
             start_idx = i - window
             end_idx = i
 
-            logger.info(f"{model_type_str} -- {window}: {start_idx} to {end_idx}")
+            logger.info(f"{model_type_str} -- {model_type} -- {window}: {start_idx} to {end_idx}")
 
             window_returns = returns_df.iloc[start_idx:end_idx].squeeze()
             window_factors = regression_df.iloc[start_idx:end_idx]
