@@ -51,7 +51,7 @@ const SelectComparisons = () => {
     setSnackbarMessage("This may take a few minutes...");
     setSnackbarOpen(true);
 
-    const url = '/submit-data';
+    const url = 'https://return-attribution-c87301303521.herokuapp.com/submit-data';
 
     fetch(url, {
       method: 'POST',
@@ -68,7 +68,7 @@ const SelectComparisons = () => {
       })
       .then(data => {
         console.log('Processed Data:', data);
-        navigate('/analysis', { state: { data } });
+        navigate('https://return-attribution-c87301303521.herokuapp.com/analysis', { state: { data } });
       })
       .catch(error => {
         console.error('Error:', error);
