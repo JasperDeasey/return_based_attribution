@@ -38,9 +38,7 @@ def process_data(data):
     for return_df in [fund_return_df, active_return_df]:
         model_type = 'Active' if return_df.equals(active_return_df) else 'Absolute'
         results[model_type] = {}  # Initialize dictionary for this model type
-        logger.info(model_type)
         for months in [12, 36, 60]:
-            logger.info(months)
             results[model_type][months] = {}
 
             return_rolling, rolling_vol = calculate_and_format_rolling(return_df, months)
@@ -48,9 +46,9 @@ def process_data(data):
             results[model_type][months]['rolling_return'] = json.loads(return_rolling)
             results[model_type][months]['rolling_volatility'] = json.loads(rolling_vol)
 
-            ols_regression = run_regression(return_df, regression_df, months, "OLS")
-            lasso_regression = run_regression(return_df, regression_df, months, "Lasso")
-            ridge_regression = run_regression(return_df, regression_df, months, "Ridge")
+            ols_regression = run_regression(return_df, regression_df, months, "OLS", model_type)
+            lasso_regression = run_regression(return_df, regression_df, months, "Lasso", model_type)
+            ridge_regression = run_regression(return_df, regression_df, months, "Ridge", model_type)
             
             results[model_type][months]['regression_metric'] = {}
             results[model_type][months]['regression_metric']['Lasso'] = lasso_regression
@@ -66,7 +64,7 @@ def annualized_return(returns):
     annualized = compounded_return ** (12 / periods) - 1
     return annualized
 
-def run_regression(returns_df, regression_df, window, model_type, alpha=5):
+def run_regression(returns_df, regression_df, window, model_type, model_type_str,alpha=5):
     logger.info(model_type)
     results = {
         "labels": [],
@@ -92,7 +90,7 @@ def run_regression(returns_df, regression_df, window, model_type, alpha=5):
             start_idx = i - window
             end_idx = i
 
-            logger.info(f"Running regression for window: {start_idx} to {end_idx}")
+            logger.info(f"{model_type_str} -- {window}: {start_idx} to {end_idx}")
 
             window_returns = returns_df.iloc[start_idx:end_idx].squeeze()
             window_factors = regression_df.iloc[start_idx:end_idx]
