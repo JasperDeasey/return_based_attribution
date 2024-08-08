@@ -3,7 +3,7 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS, cross_origin
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
-import api.analysis
+import backend.analysis
 
 load_dotenv()
 
@@ -41,7 +41,7 @@ def process_data(data):
 def submit_data():
     data = request.get_json() 
     if data:
-        processed_data = api.analysis.process_data(data)  # Process the data
+        processed_data = backend.analysis.process_data(data)  # Process the data
         return jsonify(processed_data)  # Return the processed data
     else:
         return jsonify({"error": "No data provided"}), 400
