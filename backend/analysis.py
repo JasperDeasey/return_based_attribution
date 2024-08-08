@@ -1,14 +1,9 @@
 import numpy as np
 import pandas as pd
-from sklearn.linear_model import LassoCV
-from sklearn.linear_model import LinearRegression
-from sqlalchemy import create_engine, Column, String, Date, Float, PrimaryKeyConstraint, text
-from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import create_engine
 import json
 import statsmodels.api as sm
-from sklearn.linear_model import Lasso, LassoCV, RidgeCV
-from sklearn.preprocessing import StandardScaler
-from sklearn.model_selection import GridSearchCV
+from sklearn.linear_model import Lasso, LassoCV, RidgeCV, LinearRegression
 from dotenv import load_dotenv
 import os
 import logging
