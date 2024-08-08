@@ -40,10 +40,10 @@ const SelectComparisons = () => {
 
   const handleSubmit = () => {
     if (data.fund.pastedData.length === 0) {
-      setSnackbarSeverity('warning');
-      setSnackbarMessage("Please paste fund returns above");
-      setSnackbarOpen(true);
-      return;
+        setSnackbarSeverity('warning');
+        setSnackbarMessage("Please paste fund returns above");
+        setSnackbarOpen(true);
+        return;
     }
 
     setLoading(true);
@@ -52,34 +52,42 @@ const SelectComparisons = () => {
     setSnackbarOpen(true);
 
     const url = 'https://return-attribution-c87301303521.herokuapp.com/submit-data';
+    const eventSource = new EventSource(url);
 
-    fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(data)
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
+    eventSource.onmessage = (event) => {
+        const result = JSON.parse(event.data);
+        if (result.status === 'processing') {
+            console.log('Processing...');
+        } else {
+            console.log('Processed Data:', result);
+            navigate('https://return-attribution-c87301303521.herokuapp.com/analysis', { state: { data: result } });
+            eventSource.close();
         }
-        return response.json();
-      })
-      .then(data => {
-        console.log('Processed Data:', data);
-        navigate('https://return-attribution-c87301303521.herokuapp.com/analysis', { state: { data } });
-      })
-      .catch(error => {
+    };
+
+    eventSource.onerror = (error) => {
         console.error('Error:', error);
         setSnackbarSeverity('error');
         setSnackbarMessage(`Error: ${error.message}`);
         setSnackbarOpen(true);
-      })
-      .finally(() => {
         setLoading(false);
-      });
-  };
+        eventSource.close();
+    };
+
+    fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    }).catch((error) => {
+        console.error('Error:', error);
+        setSnackbarSeverity('error');
+        setSnackbarMessage(`Error: ${error.message}`);
+        setSnackbarOpen(true);
+        setLoading(false);
+    });
+};
 
   const handleFundDescriptionChange = (field, value) => {
     setData(prevData => ({

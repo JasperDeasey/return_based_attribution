@@ -1,5 +1,6 @@
 import os
-from flask import Flask, request, jsonify, send_from_directory
+import time
+from flask import Flask, request, jsonify, send_from_directory, Response
 from flask_cors import CORS, cross_origin
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
@@ -10,39 +11,46 @@ load_dotenv()
 app = Flask(__name__, static_folder='../frontend/build', static_url_path='')
 CORS(app)
 
-# Get the database URL from the environment variable
 uri = os.getenv("DATABASE_URL")
 if uri and uri.startswith("postgres://"):
     uri = uri.replace("postgres://", "postgresql://")
 
-# Set the SQLAlchemy database URI
 app.config['SQLALCHEMY_DATABASE_URI'] = uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-# Example of route configuration
-# Remove if you don't have these functions defined
-# def configure_routes(app):
-#     @app.route('/api/example')
-#     def example():
-#         return jsonify({"message": "Example route"})
+def long_process(data):
+    # Simulate a long processing task
+    time.sleep(10)  # Replace with actual processing code
+    return backend.analysis.process_data(data)
 
-# Configure routes
-# configure_routes(app)
+def stream_with_heartbeat(process, *args, **kwargs):
+    def generate():
+        task_completed = False
+        while not task_completed:
+            try:
+                # Process the task
+                result = process(*args, **kwargs)
+                task_completed = True
+                yield f"data: {json.dumps(result)}\n\n"
+            except Exception as e:
+                # Handle the exception (optional)
+                yield f"data: {json.dumps({'error': str(e)})}\n\n"
+                task_completed = True
 
-# Example data processing function
-def process_data(data):
-    # Add your data processing logic here
-    return {"processed_data": data}
+            # Send a heartbeat to keep the connection alive
+            time.sleep(25)
+            yield 'data: {"status": "processing"}\n\n'
+
+    return Response(generate(), content_type='text/event-stream')
 
 @app.route('/submit-data', methods=['POST'])
 @cross_origin()
 def submit_data():
-    data = request.get_json() 
+    data = request.get_json()
     if data:
-        processed_data = backend.analysis.process_data(data)  # Process the data
-        return jsonify(processed_data)  # Return the processed data
+        return stream_with_heartbeat(long_process, data)
     else:
         return jsonify({"error": "No data provided"}), 400
 
