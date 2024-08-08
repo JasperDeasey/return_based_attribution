@@ -52,35 +52,6 @@ const SelectComparisons = () => {
     setSnackbarOpen(true);
 
     const url = 'https://return-attribution-c87301303521.herokuapp.com/submit-data';
-    const eventSource = new EventSource(url);
-
-    eventSource.onmessage = (event) => {
-        const result = JSON.parse(event.data);
-        if (result.status === 'processing') {
-            console.log('Processing...');
-        } else if (result.error) {
-            console.error('Error:', result.error);
-            setSnackbarSeverity('error');
-            setSnackbarMessage(`Error: ${result.error}`);
-            setSnackbarOpen(true);
-            setLoading(false);
-            eventSource.close();
-        } else {
-            console.log('Processed Data:', result);
-            navigate('https://return-attribution-c87301303521.herokuapp.com/analysis', { state: { data: result } });
-            setLoading(false);
-            eventSource.close();
-        }
-    };
-
-    eventSource.onerror = (error) => {
-        console.error('Error:', error);
-        setSnackbarSeverity('error');
-        setSnackbarMessage(`Error: ${error.message}`);
-        setSnackbarOpen(true);
-        setLoading(false);
-        eventSource.close();
-    };
 
     fetch(url, {
         method: 'POST',
@@ -88,7 +59,44 @@ const SelectComparisons = () => {
             'Content-Type': 'application/json',
         },
         body: JSON.stringify(data)
-    }).catch((error) => {
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+        return response.json();
+    })
+    .then(() => {
+        const eventSource = new EventSource(url);
+        eventSource.onmessage = (event) => {
+            const result = JSON.parse(event.data);
+            if (result.status === 'processing') {
+                console.log('Processing...');
+            } else if (result.error) {
+                console.error('Error:', result.error);
+                setSnackbarSeverity('error');
+                setSnackbarMessage(`Error: ${result.error}`);
+                setSnackbarOpen(true);
+                setLoading(false);
+                eventSource.close();
+            } else {
+                console.log('Processed Data:', result);
+                navigate('https://return-attribution-c87301303521.herokuapp.com/analysis', { state: { data: result } });
+                setLoading(false);
+                eventSource.close();
+            }
+        };
+
+        eventSource.onerror = (error) => {
+            console.error('Error:', error);
+            setSnackbarSeverity('error');
+            setSnackbarMessage(`Error: ${error.message}`);
+            setSnackbarOpen(true);
+            setLoading(false);
+            eventSource.close();
+        };
+    })
+    .catch(error => {
         console.error('Error:', error);
         setSnackbarSeverity('error');
         setSnackbarMessage(`Error: ${error.message}`);
