@@ -7,51 +7,54 @@ from sklearn.linear_model import Lasso, LassoCV, RidgeCV, LinearRegression
 from dotenv import load_dotenv
 import os
 import logging
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
-# Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+load_dotenv()
 
-load_dotenv()  # Load environment variables from .env file
-
-# Create the database engine
 uri = os.getenv("DATABASE_URL")
 if uri and uri.startswith("postgres://"):
     uri = uri.replace("postgres://", "postgresql://")
 engine = create_engine(uri)
 
-def process_data(data):
+async def process_data(data):
     logger.info("Processing data...")
 
-    fund_return_df, benchmark_return_df, active_return_df, regression_df = create_return_dfs(data)
+    fund_return_df, benchmark_return_df, active_return_df, regression_df = await create_return_dfs(data)
 
     results = {}
-
     results['cone_chart'] = create_cone_chart(active_return_df)
 
-    for return_df in [fund_return_df, active_return_df]:
-        model_type = 'Active' if return_df.equals(active_return_df) else 'Absolute'
-        results[model_type] = {}  # Initialize dictionary for this model type
-        for months in [12, 36, 60]:
-            results[model_type][months] = {}
+    with ThreadPoolExecutor() as executor:
+        loop = asyncio.get_event_loop()
+        tasks = []
+        for return_df in [fund_return_df, active_return_df]:
+            model_type = 'Active' if return_df.equals(active_return_df) else 'Absolute'
+            results[model_type] = {}
+            for months in [12, 36, 60]:
+                results[model_type][months] = {}
+                tasks.append(loop.run_in_executor(executor, process_single_model, return_df, regression_df, months, model_type, results))
 
-            return_rolling, rolling_vol = calculate_and_format_rolling(return_df, months)
-
-            results[model_type][months]['rolling_return'] = json.loads(return_rolling)
-            results[model_type][months]['rolling_volatility'] = json.loads(rolling_vol)
-
-            ols_regression = run_regression(return_df, regression_df, months, "OLS", model_type)
-            lasso_regression = run_regression(return_df, regression_df, months, "Lasso", model_type)
-            ridge_regression = run_regression(return_df, regression_df, months, "Ridge", model_type)
-            
-            results[model_type][months]['regression_metric'] = {}
-            results[model_type][months]['regression_metric']['Lasso'] = lasso_regression
-            results[model_type][months]['regression_metric']['Ridge'] = ridge_regression
-            results[model_type][months]['regression_metric']['OLS'] = ols_regression
+        await asyncio.gather(*tasks)
 
     return results
 
+def process_single_model(return_df, regression_df, months, model_type, results):
+    return_rolling, rolling_vol = calculate_and_format_rolling(return_df, months)
+    results[model_type][months]['rolling_return'] = json.loads(return_rolling)
+    results[model_type][months]['rolling_volatility'] = json.loads(rolling_vol)
+
+    ols_regression = run_regression(return_df, regression_df, months, "OLS", model_type)
+    lasso_regression = run_regression(return_df, regression_df, months, "Lasso", model_type)
+    ridge_regression = run_regression(return_df, regression_df, months, "Ridge", model_type)
+
+    results[model_type][months]['regression_metric'] = {}
+    results[model_type][months]['regression_metric']['Lasso'] = lasso_regression
+    results[model_type][months]['regression_metric']['Ridge'] = ridge_regression
+    results[model_type][months]['regression_metric']['OLS'] = ols_regression
 
 def annualized_return(returns):
     compounded_return = (1 + returns).prod()
@@ -59,7 +62,7 @@ def annualized_return(returns):
     annualized = compounded_return ** (12 / periods) - 1
     return annualized
 
-def run_regression(returns_df, regression_df, window, model_type, model_type_str,alpha=5):
+def run_regression(returns_df, regression_df, window, model_type, model_type_str, alpha=5):
     logger.info(model_type)
     results = {
         "labels": [],
@@ -70,7 +73,6 @@ def run_regression(returns_df, regression_df, window, model_type, model_type_str
         ]
     }
 
-    # Append datasets for each factor
     for j, factor in enumerate(regression_df.columns):
         results["datasets"].insert(j, {
             "label": factor + " Contribution",
@@ -81,7 +83,6 @@ def run_regression(returns_df, regression_df, window, model_type, model_type_str
 
     try:
         for i in range(window, len(returns_df) + 1):
-
             start_idx = i - window
             end_idx = i
 
@@ -93,7 +94,6 @@ def run_regression(returns_df, regression_df, window, model_type, model_type_str
             y = window_returns.values.flatten()
             X = window_factors.values
 
-            # Validate data
             if not np.all(np.isfinite(X)):
                 raise ValueError("X contains non-finite values")
             if not np.all(np.isfinite(y)):
@@ -101,7 +101,7 @@ def run_regression(returns_df, regression_df, window, model_type, model_type_str
 
             model = None
             if model_type == "OLS":
-                model = sm.OLS(y, X).fit()  # No intercept added
+                model = sm.OLS(y, X).fit()
             elif model_type == "Ridge":
                 alphas = np.logspace(-4, 4, 50)
                 model = RidgeCV(alphas=alphas, fit_intercept=False, cv=3).fit(X, y)
@@ -118,12 +118,10 @@ def run_regression(returns_df, regression_df, window, model_type, model_type_str
             total_return = annualized_return(pd.Series(window_returns))
             factor_contributions = [beta * annualized_return(window_factors.iloc[:, j]) for j, beta in enumerate(betas)]
 
-            # Sum of contributions
             total_factor_contributions = sum(factor_contributions)
             residual_contribution = annualized_return(pd.Series(residuals))
             difference_from_compounding = total_return - (total_factor_contributions + residual_contribution)
 
-            # Append data to results
             for idx, contribution in enumerate(factor_contributions):
                 results["datasets"][idx]["data"].append(float(contribution))
             results["datasets"][-3]["data"].append(float(residual_contribution))
@@ -134,7 +132,6 @@ def run_regression(returns_df, regression_df, window, model_type, model_type_str
         raise
 
     return results
-
 
 
 def format_json(data_series, label):

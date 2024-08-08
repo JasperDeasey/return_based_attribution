@@ -4,7 +4,6 @@ from flask_cors import CORS, cross_origin
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 import backend.analysis
-from celery import Celery
 
 load_dotenv()
 
@@ -19,47 +18,33 @@ if uri and uri.startswith("postgres://"):
 # Set the SQLAlchemy database URI
 app.config['SQLALCHEMY_DATABASE_URI'] = uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['CELERY_BROKER_URL'] = os.getenv('REDIS_URL')
-app.config['CELERY_RESULT_BACKEND'] = os.getenv('REDIS_URL')
 
 db = SQLAlchemy(app)
-celery = make_celery(app)
 
-@celery.task
-def process_data_task(data):
-    return backend.analysis.process_data(data)
+# Example of route configuration
+# Remove if you don't have these functions defined
+# def configure_routes(app):
+#     @app.route('/api/example')
+#     def example():
+#         return jsonify({"message": "Example route"})
+
+# Configure routes
+# configure_routes(app)
+
+# Example data processing function
+def process_data(data):
+    # Add your data processing logic here
+    return {"processed_data": data}
 
 @app.route('/submit-data', methods=['POST'])
 @cross_origin()
 def submit_data():
-    data = request.get_json()
+    data = request.get_json() 
     if data:
-        task = process_data_task.delay(data)  # Run the task asynchronously
-        return jsonify({"task_id": task.id}), 202
+        processed_data = backend.analysis.process_data(data)  # Process the data
+        return jsonify(processed_data)  # Return the processed data
     else:
         return jsonify({"error": "No data provided"}), 400
-
-@app.route('/task-status/<task_id>', methods=['GET'])
-@cross_origin()
-def task_status(task_id):
-    task = process_data_task.AsyncResult(task_id)
-    if task.state == 'PENDING':
-        response = {
-            'state': task.state,
-            'status': 'Pending...'
-        }
-    elif task.state != 'FAILURE':
-        response = {
-            'state': task.state,
-            'status': task.state,
-            'result': task.result
-        }
-    else:
-        response = {
-            'state': task.state,
-            'status': str(task.info)
-        }
-    return jsonify(response)
 
 @app.route('/')
 @cross_origin()
