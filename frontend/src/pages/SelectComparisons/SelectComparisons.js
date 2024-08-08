@@ -48,7 +48,7 @@ const SelectComparisons = () => {
     setSnackbarMessage("This may take a few minutes...");
     setSnackbarOpen(true);
 
-    const url = 'https://return-attribution-c87301303521.herokuapp.com/submit-data';
+    const url = '/submit-data';
 
     fetch(url, {
       method: 'POST',
