@@ -28,6 +28,7 @@ const SelectComparisons = () => {
   const [loading, setLoading] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('info');
 
   useEffect(() => {
     console.log("State updated:", data);
@@ -39,12 +40,14 @@ const SelectComparisons = () => {
 
   const handleSubmit = () => {
     if (data.fund.pastedData.length === 0) {
+      setSnackbarSeverity('warning');
       setSnackbarMessage("Please paste fund returns above");
       setSnackbarOpen(true);
       return;
     }
 
     setLoading(true);
+    setSnackbarSeverity('info');
     setSnackbarMessage("This may take a few minutes...");
     setSnackbarOpen(true);
 
@@ -69,6 +72,9 @@ const SelectComparisons = () => {
       })
       .catch(error => {
         console.error('Error:', error);
+        setSnackbarSeverity('error');
+        setSnackbarMessage(`Error: ${error.message}`);
+        setSnackbarOpen(true);
       })
       .finally(() => {
         setLoading(false);
@@ -201,7 +207,7 @@ const SelectComparisons = () => {
         {loading ? <CircularProgress size={24} color="inherit" /> : 'Submit'}
       </Button>
       <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
-        <Alert onClose={handleSnackbarClose} severity="info" sx={{ width: '100%' }}>
+        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
           {snackbarMessage}
         </Alert>
       </Snackbar>

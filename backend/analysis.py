@@ -38,8 +38,9 @@ def process_data(data):
     for return_df in [fund_return_df, active_return_df]:
         model_type = 'Active' if return_df.equals(active_return_df) else 'Absolute'
         results[model_type] = {}  # Initialize dictionary for this model type
-
+        logger.info(model_type)
         for months in [12, 36, 60]:
+            logger.info(months)
             results[model_type][months] = {}
 
             return_rolling, rolling_vol = calculate_and_format_rolling(return_df, months)
@@ -66,6 +67,7 @@ def annualized_return(returns):
     return annualized
 
 def run_regression(returns_df, regression_df, window, model_type, alpha=5):
+    logger.info(model_type)
     results = {
         "labels": [],
         "datasets": [
@@ -86,6 +88,8 @@ def run_regression(returns_df, regression_df, window, model_type, alpha=5):
 
     try:
         for i in range(window, len(returns_df) + 1):
+            logger.info(f"Running regression for window: {start_idx} to {end_idx}")
+
             start_idx = i - window
             end_idx = i
 
@@ -94,11 +98,6 @@ def run_regression(returns_df, regression_df, window, model_type, alpha=5):
 
             y = window_returns.values.flatten()
             X = window_factors.values
-
-            # Log shapes and sample data for debugging
-            logger.info(f"Running regression for window: {start_idx} to {end_idx}")
-            logger.info(f"Shape of X: {X.shape}, Shape of y: {y.shape}")
-            logger.info(f"Sample X: {X[:5]}, Sample y: {y[:5]}")
 
             # Validate data
             if not np.all(np.isfinite(X)):
