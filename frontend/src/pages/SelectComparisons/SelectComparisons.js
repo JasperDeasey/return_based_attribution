@@ -48,7 +48,7 @@ const SelectComparisons = () => {
     setSnackbarMessage("This may take a few minutes...");
     setSnackbarOpen(true);
 
-    const url = 'http://127.0.0.1:5000/submit-data';  // Ensure this matches your backend address
+    const url = '/submit-data';
 
     fetch(url, {
       method: 'POST',
