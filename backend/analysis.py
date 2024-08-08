@@ -27,6 +27,8 @@ if uri and uri.startswith("postgres://"):
 engine = create_engine(uri)
 
 def process_data(data):
+    logger.info("Processing data...")
+
     fund_return_df, benchmark_return_df, active_return_df, regression_df = create_return_dfs(data)
 
     results = {}
@@ -72,6 +74,7 @@ def run_regression(returns_df, regression_df, window, model_type, alpha=5):
             {"label": "Difference from Compounding / Other", "data": [], "borderColor": "color-difference", "fill": False}
         ]
     }
+
     # Append datasets for each factor
     for j, factor in enumerate(regression_df.columns):
         results["datasets"].insert(j, {
@@ -81,46 +84,61 @@ def run_regression(returns_df, regression_df, window, model_type, alpha=5):
             "fill": False
         })
 
-    for i in range(window, len(returns_df) + 1):
-        start_idx = i - window
-        end_idx = i
+    try:
+        for i in range(window, len(returns_df) + 1):
+            start_idx = i - window
+            end_idx = i
 
-        window_returns = returns_df.iloc[start_idx:end_idx].squeeze()
-        window_factors = regression_df.iloc[start_idx:end_idx]
+            window_returns = returns_df.iloc[start_idx:end_idx].squeeze()
+            window_factors = regression_df.iloc[start_idx:end_idx]
 
-        y = window_returns.values.flatten()
-        X = window_factors.values
+            y = window_returns.values.flatten()
+            X = window_factors.values
 
-        model = None
-        if model_type == "OLS":
-            model = sm.OLS(y, X).fit()  # No intercept added
-        elif model_type == "Ridge":
-            alphas = np.logspace(-4, 4, 50)
-            model = RidgeCV(alphas=alphas, fit_intercept=False, cv=3).fit(X, y)
-        elif model_type == "Lasso":
-            lasso_cv = LassoCV(alphas=np.logspace(-4, 1, 50), cv=3, max_iter=10000, fit_intercept=False).fit(X, y)
-            model = Lasso(alpha=lasso_cv.alpha_, fit_intercept=False).fit(X, y)
+            # Log shapes and sample data for debugging
+            logger.info(f"Running regression for window: {start_idx} to {end_idx}")
+            logger.info(f"Shape of X: {X.shape}, Shape of y: {y.shape}")
+            logger.info(f"Sample X: {X[:5]}, Sample y: {y[:5]}")
 
-        betas = model.coef_ if model_type != "OLS" else model.params
-        predictions = model.predict(X)
-        residuals = y - predictions
+            # Validate data
+            if not np.all(np.isfinite(X)):
+                raise ValueError("X contains non-finite values")
+            if not np.all(np.isfinite(y)):
+                raise ValueError("y contains non-finite values")
 
-        date = returns_df.index[end_idx - 1].strftime('%Y-%m-%d')
-        results["labels"].append(date)
-        total_return = annualized_return(pd.Series(window_returns))
-        factor_contributions = [beta * annualized_return(window_factors.iloc[:, j]) for j, beta in enumerate(betas)]
+            model = None
+            if model_type == "OLS":
+                model = sm.OLS(y, X).fit()  # No intercept added
+            elif model_type == "Ridge":
+                alphas = np.logspace(-4, 4, 50)
+                model = RidgeCV(alphas=alphas, fit_intercept=False, cv=3).fit(X, y)
+            elif model_type == "Lasso":
+                lasso_cv = LassoCV(alphas=np.logspace(-4, 1, 50), cv=3, max_iter=10000, fit_intercept=False).fit(X, y)
+                model = Lasso(alpha=lasso_cv.alpha_, fit_intercept=False).fit(X, y)
 
-        # Sum of contributions
-        total_factor_contributions = sum(factor_contributions)
-        residual_contribution = annualized_return(pd.Series(residuals))
-        difference_from_compounding = total_return - (total_factor_contributions + residual_contribution)
+            betas = model.coef_ if model_type != "OLS" else model.params
+            predictions = model.predict(X)
+            residuals = y - predictions
 
-        # Append data to results
-        for idx, contribution in enumerate(factor_contributions):
-            results["datasets"][idx]["data"].append(float(contribution))
-        results["datasets"][-3]["data"].append(float(residual_contribution))
-        results["datasets"][-2]["data"].append(float(total_return))
-        results["datasets"][-1]["data"].append(float(difference_from_compounding))
+            date = returns_df.index[end_idx - 1].strftime('%Y-%m-%d')
+            results["labels"].append(date)
+            total_return = annualized_return(pd.Series(window_returns))
+            factor_contributions = [beta * annualized_return(window_factors.iloc[:, j]) for j, beta in enumerate(betas)]
+
+            # Sum of contributions
+            total_factor_contributions = sum(factor_contributions)
+            residual_contribution = annualized_return(pd.Series(residuals))
+            difference_from_compounding = total_return - (total_factor_contributions + residual_contribution)
+
+            # Append data to results
+            for idx, contribution in enumerate(factor_contributions):
+                results["datasets"][idx]["data"].append(float(contribution))
+            results["datasets"][-3]["data"].append(float(residual_contribution))
+            results["datasets"][-2]["data"].append(float(total_return))
+            results["datasets"][-1]["data"].append(float(difference_from_compounding))
+    except Exception as e:
+        logger.error(f"Error during regression: {e}", exc_info=True)
+        raise
 
     return results
 
