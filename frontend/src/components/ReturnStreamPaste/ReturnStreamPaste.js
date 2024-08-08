@@ -18,9 +18,9 @@ const ReturnStreamPaste = ({ onClear, onSubmit }) => {
     onClear();
   };
 
-  const handlePaste = useCallback((event) => {
+  const handlePaste = useCallback(async (event) => {
     event.preventDefault();
-    const clipboardData = event.clipboardData.getData('Text');
+    const clipboardData = await navigator.clipboard.readText();
     console.log('Raw clipboard data:', clipboardData); // Debugging log
 
     const parsedRows = clipboardData.split(/\r?\n/).map((row, index) => {
