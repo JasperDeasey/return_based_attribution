@@ -22,56 +22,44 @@ const initialData = {
   ]
 };
 
-const SelectComparisons = () => {
-  const navigate = useNavigate();
-  const [data, setData] = useState(initialData);
-  const [loading, setLoading] = useState(false);
-  const [snackbarOpen, setSnackbarOpen] = useState(false);
-  const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [snackbarSeverity, setSnackbarSeverity] = useState('info');
+const handleSubmit = () => {
+  if (data.fund.pastedData.length === 0) {
+    setSnackbarSeverity('warning');
+    setSnackbarMessage("Please paste fund returns above");
+    setSnackbarOpen(true);
+    return;
+  }
 
-  useEffect(() => {
-    console.log("State updated:", data);
-  }, [data]);
+  setLoading(true);
+  setSnackbarSeverity('info');
+  setSnackbarMessage("This may take a few minutes...");
+  setSnackbarOpen(true);
 
-  const handleSnackbarClose = () => {
-    setSnackbarOpen(false);
+  const url = 'https://return-attribution-c87301303521.herokuapp.com/submit-data';
+
+  const eventSource = new EventSource(url);
+
+  eventSource.onmessage = (event) => {
+    const parsedData = JSON.parse(event.data);
+    if (parsedData.status === "processing") {
+      console.log("Processing...");
+    } else {
+      console.log('Processed Data:', parsedData);
+      navigate('/analysis', { state: { data: parsedData } });
+      eventSource.close();
+      setLoading(false);
+    }
   };
 
-  const handleSubmit = () => {
-    if (data.fund.pastedData.length === 0) {
-        setSnackbarSeverity('warning');
-        setSnackbarMessage("Please paste fund returns above");
-        setSnackbarOpen(true);
-        return;
-    }
-
-    setLoading(true);
-    setSnackbarSeverity('info');
-    setSnackbarMessage("This may take a few minutes...");
+  eventSource.onerror = (error) => {
+    console.error('Error:', error);
+    setSnackbarSeverity('error');
+    setSnackbarMessage(`Error: ${error.message}`);
     setSnackbarOpen(true);
-
-    const url = 'https://return-attribution-c87301303521.herokuapp.com/submit-data';
-    const eventSource = new EventSource(url);
-
-    eventSource.onmessage = (event) => {
-        const result = JSON.parse(event.data);
-        if (result.status === 'processing') {
-            console.log('Processing...');
-        } else if (result.error) {
-            console.error('Error:', result.error);
-            setSnackbarSeverity('error');
-            setSnackbarMessage(`Error: ${result.error}`);
-            setSnackbarOpen(true);
-            setLoading(false);
-            eventSource.close();
-        } else {
-            console.log('Processed Data:', result);
-            navigate('https://return-attribution-c87301303521.herokuapp.com/analysis', { state: { data: result } });
-            setLoading(false);
-            eventSource.close();
-        }
-    };
+    eventSource.close();
+    setLoading(false);
+  };
+};
 
     eventSource.onerror = (error) => {
         console.error('Error:', error);

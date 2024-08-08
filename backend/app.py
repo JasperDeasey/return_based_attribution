@@ -1,5 +1,6 @@
 import os
 import time
+import json
 from flask import Flask, request, jsonify, send_from_directory, Response
 from flask_cors import CORS, cross_origin
 from flask_sqlalchemy import SQLAlchemy
@@ -28,18 +29,15 @@ def stream_with_heartbeat(process, *args, **kwargs):
         task_completed = False
         while not task_completed:
             try:
-                # Process the task
                 result = process(*args, **kwargs)
                 task_completed = True
                 yield f"data: {json.dumps(result)}\n\n"
             except Exception as e:
-                # Handle the exception (optional)
                 yield f"data: {json.dumps({'error': str(e)})}\n\n"
                 task_completed = True
 
-            # Send a heartbeat to keep the connection alive
-            time.sleep(25)
             yield 'data: {"status": "processing"}\n\n'
+            time.sleep(25)
 
     return Response(generate(), content_type='text/event-stream')
 
