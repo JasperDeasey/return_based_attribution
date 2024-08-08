@@ -3,6 +3,9 @@ backend/data/benchmark_returns.db
 .env
 backend/data/dumps.sql
 backend/data/dump.sql
+.elasticbeanstalk/*
+!.elasticbeanstalk/*.cfg.yml
+!.elasticbeanstalk/*.global.yml
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
@@ -14,7 +17,7 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
+# build/
 develop-eggs/
 dist/
 downloads/

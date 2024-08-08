@@ -8,7 +8,7 @@ from api.routes import configure_routes
 load_dotenv()  # Load environment variables from .env file
 
 def create_app():
-    app = Flask(__name__)
+    app = Flask(__name__, static_folder='../frontend/build', static_url_path='')
     CORS(app)  # Enable CORS for all routes and origins
 
     # Get the database URL from the environment variable
