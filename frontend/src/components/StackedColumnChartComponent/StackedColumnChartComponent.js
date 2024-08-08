@@ -91,16 +91,16 @@ const StackedColumnChartComponent = ({ chartData }) => {
           data: dataset.data.map(value => value * 100),
           borderColor: lightGrey,
           backgroundColor: lightGrey,
-          borderWidth: 1
+          borderWidth: 0
         };
       } else {
         return {
           ...dataset,
           data: dataset.data.map(value => value * 100),
           backgroundColor: pastelColors[index % pastelColors.length],
-          borderColor: dataset.borderColor,
+          borderColor: 'transparent',
           borderDash: dataset.borderDash || [],
-          borderWidth: 1
+          borderWidth: 0
         };
       }
     })

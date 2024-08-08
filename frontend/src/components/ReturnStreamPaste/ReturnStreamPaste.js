@@ -21,8 +21,11 @@ const ReturnStreamPaste = ({ onClear, onSubmit }) => {
   const handlePaste = useCallback((event) => {
     event.preventDefault();
     const clipboardData = event.clipboardData.getData('Text');
-    const parsedRows = clipboardData.split('\n').map((row, index) => {
-      const [date, returnValue] = row.split('\t');
+    console.log('Raw clipboard data:', clipboardData); // Debugging log
+
+    const parsedRows = clipboardData.split(/\r?\n/).map((row, index) => {
+      const [date, returnValue] = row.split(/\t/);
+      console.log('Parsed row:', date, returnValue); // Debugging log
       let cleanedReturnValue = returnValue.trim().replace(/\r$/, ''); // Remove trailing carriage return character
       if (cleanedReturnValue.endsWith('%')) {
         cleanedReturnValue = (parseFloat(cleanedReturnValue.slice(0, -1)) / 100).toString();
@@ -32,7 +35,9 @@ const ReturnStreamPaste = ({ onClear, onSubmit }) => {
         date: date.trim(), // Trims whitespace and line ending characters from the date
         return: cleanedReturnValue
       };
-    });
+    }).filter(row => row.date && row.return); // Filter out any empty rows
+
+    console.log('Parsed rows:', parsedRows); // Debugging log
     setRows(parsedRows);
   }, []);
 
