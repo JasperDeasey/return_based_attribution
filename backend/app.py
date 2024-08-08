@@ -21,8 +21,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 def long_process(data):
-    # Simulate a long processing task
-    time.sleep(10)  # Replace with actual processing code
     return backend.analysis.process_data(data)
 
 def stream_with_heartbeat(process, *args, **kwargs):

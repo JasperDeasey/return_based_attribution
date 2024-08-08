@@ -58,9 +58,17 @@ const SelectComparisons = () => {
         const result = JSON.parse(event.data);
         if (result.status === 'processing') {
             console.log('Processing...');
+        } else if (result.error) {
+            console.error('Error:', result.error);
+            setSnackbarSeverity('error');
+            setSnackbarMessage(`Error: ${result.error}`);
+            setSnackbarOpen(true);
+            setLoading(false);
+            eventSource.close();
         } else {
             console.log('Processed Data:', result);
             navigate('https://return-attribution-c87301303521.herokuapp.com/analysis', { state: { data: result } });
+            setLoading(false);
             eventSource.close();
         }
     };

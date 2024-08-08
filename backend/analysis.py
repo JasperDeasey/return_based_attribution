@@ -106,7 +106,7 @@ def run_regression(returns_df, regression_df, window, model_type, model_type_str
                 alphas = np.logspace(-4, 4, 50)
                 model = RidgeCV(alphas=alphas, fit_intercept=False, cv=3).fit(X, y)
             elif model_type == "Lasso":
-                lasso_cv = LassoCV(alphas=np.logspace(-4, 1, 50), cv=3, max_iter=10000, fit_intercept=False).fit(X, y)
+                lasso_cv = LassoCV(alphas=np.logspace(-4, 1, 50), cv=3, max_iter=1000, fit_intercept=False).fit(X, y)
                 model = Lasso(alpha=lasso_cv.alpha_, fit_intercept=False).fit(X, y)
 
             betas = model.coef_ if model_type != "OLS" else model.params
