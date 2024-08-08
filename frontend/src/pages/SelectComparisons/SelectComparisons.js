@@ -66,35 +66,9 @@ const SelectComparisons = () => {
         }
         return response.json();
     })
-    .then(() => {
-        const eventSource = new EventSource(url);
-        eventSource.onmessage = (event) => {
-            const result = JSON.parse(event.data);
-            if (result.status === 'processing') {
-                console.log('Processing...');
-            } else if (result.error) {
-                console.error('Error:', result.error);
-                setSnackbarSeverity('error');
-                setSnackbarMessage(`Error: ${result.error}`);
-                setSnackbarOpen(true);
-                setLoading(false);
-                eventSource.close();
-            } else {
-                console.log('Processed Data:', result);
-                navigate('https://return-attribution-c87301303521.herokuapp.com/analysis', { state: { data: result } });
-                setLoading(false);
-                eventSource.close();
-            }
-        };
-
-        eventSource.onerror = (error) => {
-            console.error('Error:', error);
-            setSnackbarSeverity('error');
-            setSnackbarMessage(`Error: ${error.message}`);
-            setSnackbarOpen(true);
-            setLoading(false);
-            eventSource.close();
-        };
+    .then(responseData => {
+        const taskId = responseData.task_id;
+        checkTaskStatus(taskId);
     })
     .catch(error => {
         console.error('Error:', error);
@@ -103,6 +77,45 @@ const SelectComparisons = () => {
         setSnackbarOpen(true);
         setLoading(false);
     });
+};
+
+const checkTaskStatus = (taskId) => {
+    const statusUrl = `https://return-attribution-c87301303521.herokuapp.com/task-status/${taskId}`;
+
+    const intervalId = setInterval(() => {
+        fetch(statusUrl)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Network response was not ok');
+            }
+            return response.json();
+        })
+        .then(statusData => {
+            if (statusData.status === 'completed') {
+                console.log('Processed Data:', statusData.result);
+                navigate('https://return-attribution-c87301303521.herokuapp.com/analysis', { state: { data: statusData.result } });
+                setLoading(false);
+                clearInterval(intervalId);
+            } else if (statusData.status === 'error') {
+                console.error('Error:', statusData.result.error);
+                setSnackbarSeverity('error');
+                setSnackbarMessage(`Error: ${statusData.result.error}`);
+                setSnackbarOpen(true);
+                setLoading(false);
+                clearInterval(intervalId);
+            } else {
+                console.log('Processing...');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            setSnackbarSeverity('error');
+            setSnackbarMessage(`Error: ${error.message}`);
+            setSnackbarOpen(true);
+            setLoading(false);
+            clearInterval(intervalId);
+        });
+    }, 5000); // Check every 5 seconds
 };
 
   const handleFundDescriptionChange = (field, value) => {

@@ -1,7 +1,8 @@
 import os
 import time
 import json
-from flask import Flask, request, jsonify, send_from_directory, Response
+from uuid import uuid4
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS, cross_origin
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
@@ -21,34 +22,47 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
+tasks = {}
+
 def long_process(data):
     return backend.analysis.process_data(data)
-
-def stream_with_heartbeat(process, *args, **kwargs):
-    def generate():
-        task_completed = False
-        while not task_completed:
-            try:
-                result = process(*args, **kwargs)
-                task_completed = True
-                yield f"data: {json.dumps(result)}\n\n"
-            except Exception as e:
-                yield f"data: {json.dumps({'error': str(e)})}\n\n"
-                task_completed = True
-
-            yield 'data: {"status": "processing"}\n\n'
-            time.sleep(25)
-
-    return Response(generate(), content_type='text/event-stream')
 
 @app.route('/submit-data', methods=['POST'])
 @cross_origin()
 def submit_data():
     data = request.get_json()
     if data:
-        return stream_with_heartbeat(long_process, data)
+        task_id = str(uuid4())
+        tasks[task_id] = {
+            'status': 'processing',
+            'result': None
+        }
+        # Simulate background processing
+        def background_task(task_id, data):
+            try:
+                result = long_process(data)
+                tasks[task_id]['result'] = result
+                tasks[task_id]['status'] = 'completed'
+            except Exception as e:
+                tasks[task_id]['result'] = {'error': str(e)}
+                tasks[task_id]['status'] = 'error'
+        
+        from threading import Thread
+        thread = Thread(target=background_task, args=(task_id, data))
+        thread.start()
+
+        return jsonify({'task_id': task_id})
     else:
         return jsonify({"error": "No data provided"}), 400
+
+@app.route('/task-status/<task_id>', methods=['GET'])
+@cross_origin()
+def task_status(task_id):
+    task = tasks.get(task_id)
+    if task:
+        return jsonify(task)
+    else:
+        return jsonify({'error': 'Task not found'}), 404
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
