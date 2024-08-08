@@ -88,10 +88,11 @@ def run_regression(returns_df, regression_df, window, model_type, alpha=5):
 
     try:
         for i in range(window, len(returns_df) + 1):
-            logger.info(f"Running regression for window: {start_idx} to {end_idx}")
 
             start_idx = i - window
             end_idx = i
+
+            logger.info(f"Running regression for window: {start_idx} to {end_idx}")
 
             window_returns = returns_df.iloc[start_idx:end_idx].squeeze()
             window_factors = regression_df.iloc[start_idx:end_idx]
