@@ -93,7 +93,7 @@ const checkTaskStatus = (taskId) => {
         .then(statusData => {
             if (statusData.status === 'completed') {
                 console.log('Processed Data:', statusData.result);
-                navigate('https://return-attribution-c87301303521.herokuapp.com/analysis', { state: { data: statusData.result } });
+                navigate('/analysis', { state: { data: statusData.result } });
                 setLoading(false);
                 clearInterval(intervalId);
             } else if (statusData.status === 'error') {
