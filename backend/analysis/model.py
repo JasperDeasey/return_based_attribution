@@ -3,7 +3,18 @@ import pandas as pd
 import statsmodels.api as sm
 from sklearn.linear_model import Lasso, LassoCV, RidgeCV
 import logging
-import backend.analysis.simple_calcs as simple_calcs
+import os
+import sys
+from dotenv import load_dotenv
+
+load_dotenv()
+base_path = os.getenv("ANALYSIS_PATH", "")
+
+# Add the base path to sys.path
+sys.path.insert(0, os.path.abspath(base_path))
+
+# Now you can import your modules as usual
+import simple_calcs as simple_calcs
 
 
 # Configure logging

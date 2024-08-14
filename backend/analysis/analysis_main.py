@@ -1,10 +1,20 @@
 import json
-from dotenv import load_dotenv
 import logging
-import backend.analysis.cone_chart as cone_chart
-import backend.analysis.data_processing as data_processing
-import backend.analysis.simple_calcs as simple_calcs
-import backend.analysis.model as model
+import os
+import sys
+from dotenv import load_dotenv
+
+load_dotenv()
+base_path = os.getenv("ANALYSIS_PATH", ".")
+
+# Add the base path to sys.path
+sys.path.insert(0, os.path.abspath(base_path))
+
+# Now you can import your modules as usual
+import cone_chart as cone_chart
+import data_processing as data_processing
+import simple_calcs as simple_calcs
+import model as model
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

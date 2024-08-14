@@ -1,14 +1,19 @@
 import os
-import time
-import json
 from uuid import uuid4
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS, cross_origin
 from flask_sqlalchemy import SQLAlchemy
+import sys
 from dotenv import load_dotenv
-import backend.analysis.analysis as analysis
 
 load_dotenv()
+base_path = os.getenv("BASE_PATH", "./")
+
+# Add the base path to sys.path
+sys.path.insert(0, os.path.abspath(base_path))
+
+# Now you can import your modules as usual
+import analysis.analysis_main as analysis
 
 app = Flask(__name__, static_folder='../frontend/build', static_url_path='')
 CORS(app)
