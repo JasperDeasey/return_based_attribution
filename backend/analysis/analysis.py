@@ -1,10 +1,10 @@
 import json
 from dotenv import load_dotenv
 import logging
-import cone_chart
-import data_processing
-import simple_calcs
-import model
+import backend.analysis.cone_chart
+import backend.analysis.data_processing
+import backend.analysis.simple_calcs
+import backend.analysis.model
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
