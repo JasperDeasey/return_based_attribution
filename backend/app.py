@@ -6,7 +6,7 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS, cross_origin
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
-import backend.analysis.analysis as an
+import backend.analysis.analysis as analysis
 
 load_dotenv()
 
@@ -25,7 +25,7 @@ db = SQLAlchemy(app)
 tasks = {}
 
 def long_process(data):
-    return an.process_data(data)
+    return analysis.process_data(data)
 
 @app.route('/submit-data', methods=['POST'])
 @cross_origin()

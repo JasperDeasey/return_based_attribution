@@ -3,7 +3,7 @@ import pandas as pd
 import statsmodels.api as sm
 from sklearn.linear_model import Lasso, LassoCV, RidgeCV
 import logging
-import backend.analysis.simple_calcs
+import backend.analysis.simple_calcs as simple_calcs
 
 
 # Configure logging
