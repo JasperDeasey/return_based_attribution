@@ -6,7 +6,7 @@ from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS, cross_origin
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
-import backend.analysis
+import analysis.analysis
 
 load_dotenv()
 
