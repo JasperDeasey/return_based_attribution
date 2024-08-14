@@ -30,8 +30,18 @@ const SelectComparisons = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('info');
 
+  // Load state from localStorage if available
+  useEffect(() => {
+    const savedData = localStorage.getItem('comparisonData');
+    if (savedData) {
+      setData(JSON.parse(savedData));
+    }
+  }, []);
+
+  // Save state to localStorage whenever it updates
   useEffect(() => {
     console.log("State updated:", data);
+    localStorage.setItem('comparisonData', JSON.stringify(data));
   }, [data]);
 
   const handleSnackbarClose = () => {
@@ -77,9 +87,9 @@ const SelectComparisons = () => {
         setSnackbarOpen(true);
         setLoading(false);
     });
-};
+  };
 
-const checkTaskStatus = (taskId) => {
+  const checkTaskStatus = (taskId) => {
     const statusUrl = `https://return-attribution-c87301303521.herokuapp.com/task-status/${taskId}`;
 
     const intervalId = setInterval(() => {
@@ -116,7 +126,7 @@ const checkTaskStatus = (taskId) => {
             clearInterval(intervalId);
         });
     }, 5000); // Check every 5 seconds
-};
+  };
 
   const handleFundDescriptionChange = (field, value) => {
     setData(prevData => ({
