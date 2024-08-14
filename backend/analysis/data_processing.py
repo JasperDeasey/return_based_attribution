@@ -71,7 +71,7 @@ def create_initial_regression_df(fund_return_df, residual_return_streams):
 
 def perform_residualization(regression_df, regression_json):
     try:
-        df = fetch_benchmark_return_df(regression_json['source'], regression_json['description'])
+        df = fetch_benchmark_return_df(regression_json['source'], 'return_rate')
         df = df.reindex(regression_df.index)
         y = df['return_rate']
         X = regression_df[regression_json['residualization']]

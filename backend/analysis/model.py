@@ -70,13 +70,15 @@ def run_regression(returns_df, regression_df, window, model_type, model_type_str
             # Record results for the current window
             date = returns_df.index[end_idx - 1].strftime('%Y-%m-%d')
             results["labels"].append(date)
-            total_return = simple_calcs.annualized_rolling_return(pd.Series(window_returns), window)
-            factor_contributions = [beta * simple_calcs.annualized_rolling_return(window_factors.iloc[:, j], window) for j, beta in enumerate(betas)]
-            residual_contribution = simple_calcs.annualized_rolling_return(pd.Series(residuals), window)
-            difference_from_compounding = total_return - (sum(factor_contributions) + residual_contribution)
+            total_return = simple_calcs.annualized_rolling_return(pd.Series(window_returns), window).dropna()
+            factor_contributions = [beta * simple_calcs.annualized_rolling_return(window_factors.iloc[:, j], window).dropna() for j, beta in enumerate(betas)]
+            residual_contribution = simple_calcs.annualized_rolling_return(pd.Series(residuals), window).dropna()
 
-            append_results(results, factor_contributions, residual_contribution, total_return,
-                           difference_from_compounding)
+            total_factor_contributions = sum(factor_contributions)
+            residual_contribution_value = residual_contribution.iloc[0]
+            difference_from_compounding = float(total_return.iloc[0] - (total_factor_contributions.sum() + residual_contribution_value))
+
+            append_results(results, factor_contributions, residual_contribution, total_return, difference_from_compounding)
 
             # Store regression statistics
             results["regression_stats"][date] = stats
@@ -96,42 +98,41 @@ def fit_model_and_get_stats(X, y, model_type, alpha):
     if model_type == "OLS":
         model = sm.OLS(y, X).fit()  # No intercept added
         stats = {
-            "coefficients": model.params.tolist(),
-            "r_squared": model.rsquared,
-            "adj_r_squared": model.rsquared_adj,
-            "p_values": model.pvalues.tolist(),
-            "f_statistic": model.fvalue,
-            "aic": model.aic,
-            "bic": model.bic
+            "coefficients": list(map(float, model.params.tolist())),
+            "r_squared": float(model.rsquared),
+            "adj_r_squared": float(model.rsquared_adj),
+            "p_values": list(map(float, model.pvalues.tolist())),
+            "f_statistic": float(model.fvalue),
+            "aic": float(model.aic),
+            "bic": float(model.bic)
         }
     elif model_type == "Ridge":
         alphas = np.logspace(-4, 4, 50)
         model = RidgeCV(alphas=alphas, fit_intercept=False, cv=3).fit(X, y)
         stats = {
-            "coefficients": model.coef_.tolist(),
-            "best_alpha": model.alpha_,
-            "intercept": model.intercept_,
-            "score": model.score(X, y)
+            "coefficients": list(map(float, model.coef_.tolist())),
+            "best_alpha": float(model.alpha_),
+            "intercept": float(model.intercept_),
+            "score": float(model.score(X, y))
         }
     elif model_type == "Lasso":
         lasso_cv = LassoCV(alphas=np.logspace(-4, 1, 50), cv=3, max_iter=1000, fit_intercept=False).fit(X, y)
-        model = Lasso(alpha=lasso_cv.alpha_, fit_intercept=False).fit(X, y)
+        model = Lasso(alpha=float(lasso_cv.alpha_), fit_intercept=False).fit(X, y)
         stats = {
-            "coefficients": model.coef_.tolist(),
-            "best_alpha": lasso_cv.alpha_,
-            "intercept": model.intercept_,
-            "score": model.score(X, y)
+            "coefficients": list(map(float, model.coef_.tolist())),
+            "best_alpha": float(lasso_cv.alpha_),
+            "intercept": float(model.intercept_),
+            "score": float(model.score(X, y))
         }
 
     return model, stats
 
 
-
-
 def append_results(results, factor_contributions, residual_contribution, total_return, difference_from_compounding):
     """Append computed results to the respective dataset in the results."""
     for idx, contribution in enumerate(factor_contributions):
-        results["datasets"][idx]["data"].append(float(contribution))
-    results["datasets"][-3]["data"].append(float(residual_contribution))
-    results["datasets"][-2]["data"].append(float(total_return))
+        results["datasets"][idx]["data"].append(float(contribution.iloc[0]))
+
+    results["datasets"][-3]["data"].append(float(residual_contribution.iloc[0]))
+    results["datasets"][-2]["data"].append(float(total_return.iloc[0]))
     results["datasets"][-1]["data"].append(float(difference_from_compounding))

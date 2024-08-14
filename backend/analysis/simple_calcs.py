@@ -41,7 +41,10 @@ def calculate_and_format_rolling(return_df, months):
 
 
 def annualized_rolling_return(returns, window, periods_per_year=12):
-    rolling_cum_return = returns.rolling(window=window).apply(lambda x: (1 + x).prod() - 1, raw=False)
-    n_periods = window
-    annualized_rolling = (1 + rolling_cum_return) ** (periods_per_year / n_periods) - 1
-    return annualized_rolling
+    def calc_annualized(x):
+        if len(x) < window or x.isnull().any():
+            return np.nan
+        return (1 + x).prod() ** (periods_per_year / len(x)) - 1
+
+    rolling_cum_return = returns.rolling(window=window).apply(calc_annualized, raw=False)
+    return rolling_cum_return
