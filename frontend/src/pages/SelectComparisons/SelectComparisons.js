@@ -30,13 +30,12 @@ const SelectComparisons = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('info');
 
-  // Load state from localStorage if available
   useEffect(() => {
     const savedData = localStorage.getItem('comparisonData');
     if (savedData) {
-      setData(JSON.parse(savedData));
+        setData(JSON.parse(savedData));
     }
-  }, []);
+}, []);
 
   // Save state to localStorage whenever it updates
   useEffect(() => {
@@ -103,6 +102,10 @@ const SelectComparisons = () => {
         .then(statusData => {
             if (statusData.status === 'completed') {
                 console.log('Processed Data:', statusData.result);
+                
+                // Save the current state before navigating
+                localStorage.setItem('submittedData', JSON.stringify(data));
+                
                 navigate('/analysis', { state: { data: statusData.result } });
                 setLoading(false);
                 clearInterval(intervalId);
@@ -126,7 +129,7 @@ const SelectComparisons = () => {
             clearInterval(intervalId);
         });
     }, 5000); // Check every 5 seconds
-  };
+};
 
   const handleFundDescriptionChange = (field, value) => {
     setData(prevData => ({
