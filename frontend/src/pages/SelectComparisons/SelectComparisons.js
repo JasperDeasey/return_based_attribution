@@ -88,6 +88,11 @@ const SelectComparisons = () => {
     });
   };
 
+  const handleReset = () => {
+    setData(initialData); // Reset the state to the initial data
+    localStorage.removeItem('comparisonData'); // Clear saved data from localStorage
+  };
+
   const checkTaskStatus = (taskId) => {
     const statusUrl = `https://return-attribution-c87301303521.herokuapp.com/task-status/${taskId}`;
 
@@ -214,6 +219,7 @@ const SelectComparisons = () => {
             fund={data.fund}
             onDescriptionChange={handleFundDescriptionChange}
             updateFundReturns={handlePastedDataUpdate}
+            pastedData={data.fund.pastedData} // Pass pastedData as a prop
           />
         </Box>
         <Box sx={{ mt: 3 }}>
@@ -253,9 +259,36 @@ const SelectComparisons = () => {
           </IconButton>
         </Box>
       </div>
-      <Button variant="contained" color="primary" className="submit-button" onClick={handleSubmit} disabled={loading}>
-        {loading ? <CircularProgress size={24} color="inherit" /> : 'Submit'}
-      </Button>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
+        <Button
+          variant="outlined"
+          color="secondary"
+          className="reset-button"
+          onClick={handleReset}
+          sx={{
+            padding: '6px 16px',
+            borderColor: '#f44336',
+            color: '#f44336',
+            '&:hover': {
+              backgroundColor: '#fce4ec',
+              borderColor: '#f44336',
+            }
+          }}
+        >
+          Reset Page
+        </Button>
+        <Box sx={{ flexGrow: 1, textAlign: 'center' }}>
+          <Button
+            variant="contained"
+            color="primary"
+            className="submit-button"
+            onClick={handleSubmit}
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={24} color="inherit" /> : 'Submit'}
+          </Button>
+        </Box>
+      </Box>
       <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
         <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
           {snackbarMessage}
