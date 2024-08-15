@@ -90,6 +90,8 @@ const SelectComparisons = () => {
 
   const handleReset = () => {
     setData(initialData); // Reset the state to the initial data
+    setChartData(null); // Reset the chart data
+    setCumulativeReturn(null); // Reset the cumulative return
     localStorage.removeItem('comparisonData'); // Clear saved data from localStorage
   };
 
@@ -219,7 +221,8 @@ const SelectComparisons = () => {
             fund={data.fund}
             onDescriptionChange={handleFundDescriptionChange}
             updateFundReturns={handlePastedDataUpdate}
-            pastedData={data.fund.pastedData} // Pass pastedData as a prop
+            pastedData={data.fund.pastedData}
+            onReset={handleReset} // Pass the handleReset function
           />
         </Box>
         <Box sx={{ mt: 3 }}>

@@ -1,12 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Accordion, AccordionSummary, AccordionDetails, TextField, Box, IconButton, Typography, Chip } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import DeleteIcon from '@mui/icons-material/Delete';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import ReturnStreamPaste from '../ReturnStreamPaste';
 import LineChartComponent from '../LineChartComponent';
 
-const FundReturnInput = ({ fund, onDescriptionChange, updateFundReturns, pastedData }) => {
+const FundReturnInput = ({ fund, onDescriptionChange, updateFundReturns, pastedData, onReset }) => {
   const [description, setDescription] = useState(fund.description);
   const [expanded, setExpanded] = useState(true);
   const [cumulativeReturn, setCumulativeReturn] = useState(null);
@@ -16,7 +15,6 @@ const FundReturnInput = ({ fund, onDescriptionChange, updateFundReturns, pastedD
   useEffect(() => {
     // Ensure the pasted data is correctly set when coming back to this component
     setPastedRows(pastedData || []);
-    // Additionally, if you need to reinitialize chartData when coming back:
     if (pastedData && pastedData.length > 0) {
       const returns = pastedData.map(row => parseFloat(row.return || 0));
       const cumulatives = returns.reduce((acc, curr, i) => {
@@ -40,6 +38,19 @@ const FundReturnInput = ({ fund, onDescriptionChange, updateFundReturns, pastedD
     }
   }, [pastedData]); // Ensure this runs when pastedData changes
 
+  // Handle reset when the reset button is clicked
+  useEffect(() => {
+    if (onReset) {
+      onReset(() => {
+        // Clear all states when reset is triggered
+        setDescription(fund.description);
+        setChartData(null);
+        setCumulativeReturn(null);
+        setPastedRows([]);
+      });
+    }
+  }, [onReset, fund.description]);
+
   const handleDescriptionChange = (event) => {
     const newDescription = event.target.value;
     setDescription(newDescription);
@@ -56,7 +67,7 @@ const FundReturnInput = ({ fund, onDescriptionChange, updateFundReturns, pastedD
     setPastedRows(rows); // Update the pasted rows
     const returns = rows.map(row => parseFloat(row.return || 0));
     const cumulatives = returns.reduce((acc, curr, i) => {
-      acc.push((i === 0 ? 1 : acc[i-1]) * (1 + curr));
+      acc.push((i === 0 ? 1 : acc[i - 1]) * (1 + curr));
       return acc;
     }, []).map(value => (value - 1)); // Convert to percentage format
   
@@ -92,11 +103,6 @@ const FundReturnInput = ({ fund, onDescriptionChange, updateFundReturns, pastedD
             <CheckCircleIcon style={{ color: 'green', padding: '5px'}} fontSize='large'/>
           )}
         </Box>
-        <IconButton onClick={(e) => {
-          e.stopPropagation();
-          // Code to handle removal if necessary
-        }}>
-        </IconButton>
       </AccordionSummary>
       <AccordionDetails>
         <ReturnStreamPaste
