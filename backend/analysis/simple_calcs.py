@@ -31,7 +31,7 @@ def calculate_and_format_rolling(return_df, months):
     ).dropna()
 
     # Calculate rolling volatility, removing NaN values
-    rolling_vol = (return_df.iloc[:, 0].rolling(window=months).std() * np.sqrt(12 / months)).dropna()
+    rolling_vol = (return_df.iloc[:, 0].rolling(window=months).std() * np.sqrt(12)).dropna()
 
     # Format JSON without NaN values
     json_return_rolling = format_json(return_rolling, f"{int(months / 12)}yr Rolling Return")
