@@ -219,8 +219,7 @@ const SelectComparisons = () => {
             fund={data.fund}
             onDescriptionChange={handleFundDescriptionChange}
             updateFundReturns={handlePastedDataUpdate}
-            pastedData={data.fund.pastedData}
-            onReset={handleReset} // Pass the handleReset function
+            pastedData={data.fund.pastedData} // Pass pastedData as a prop
           />
         </Box>
         <Box sx={{ mt: 3 }}>
