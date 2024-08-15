@@ -90,8 +90,6 @@ const SelectComparisons = () => {
 
   const handleReset = () => {
     setData(initialData); // Reset the state to the initial data
-    setChartData(null); // Reset the chart data
-    setCumulativeReturn(null); // Reset the cumulative return
     localStorage.removeItem('comparisonData'); // Clear saved data from localStorage
   };
 
