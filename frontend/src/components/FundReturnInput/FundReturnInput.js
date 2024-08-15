@@ -14,9 +14,31 @@ const FundReturnInput = ({ fund, onDescriptionChange, updateFundReturns, pastedD
   const [pastedRows, setPastedRows] = useState(pastedData || []); // Initialize with pastedData
 
   useEffect(() => {
-    // If pastedData changes, update the pastedRows state
+    // Ensure the pasted data is correctly set when coming back to this component
     setPastedRows(pastedData || []);
-  }, [pastedData]);
+    // Additionally, if you need to reinitialize chartData when coming back:
+    if (pastedData && pastedData.length > 0) {
+      const returns = pastedData.map(row => parseFloat(row.return || 0));
+      const cumulatives = returns.reduce((acc, curr, i) => {
+        acc.push((i === 0 ? 1 : acc[i - 1]) * (1 + curr));
+        return acc;
+      }, []).map(value => (value - 1)); // Convert to percentage format
+  
+      const formattedData = {
+        labels: pastedData.map(row => row.date),
+        datasets: [{
+          label: 'Cumulative Returns',
+          data: cumulatives,
+          fill: false,
+          borderColor: 'rgb(75, 192, 192)',
+          tension: 0.1
+        }]
+      };
+  
+      setChartData(formattedData);
+      setCumulativeReturn((cumulatives[cumulatives.length - 1] / 100).toFixed(4) - 1);
+    }
+  }, [pastedData]); // Ensure this runs when pastedData changes
 
   const handleDescriptionChange = (event) => {
     const newDescription = event.target.value;
