@@ -11,8 +11,7 @@ load_dotenv()
 base_path = os.getenv("ANALYSIS_PATH", "")
 sys.path.insert(0, os.path.abspath(base_path))
 
-# Now you can import your modules as usual
-import analysis.simple_calcs as simple_calcs
+import simple_calcs as simple_calcs
 
 
 # Configure logging
