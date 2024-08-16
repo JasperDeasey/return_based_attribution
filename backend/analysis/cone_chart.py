@@ -3,8 +3,8 @@ import pandas as pd
 from sklearn.linear_model import LinearRegression
 
 
-def create_cone_chart(active_return_df):
-    monthly_excess_return = prepend_zero_to_series(active_return_df['Active'])
+def create_cone_chart(return_series):
+    monthly_excess_return = prepend_zero_to_series(return_series)
     cumulative_excess_return = (1 + monthly_excess_return).cumprod() - 1
 
     # Fit line of best fit without intercept
@@ -33,7 +33,7 @@ def create_cone_chart(active_return_df):
     }
 
     dates = monthly_excess_return.index.strftime('%Y-%m-%d').tolist()
-    title = f"Annualized Alpha: {annualized_alpha*100:.2f}%, Line of Best Fit: {annualized_best_fit_return*100:.2f}%, Tracking Error: {tracking_error_annualized*100:.2f}%"
+    title = f"Annualized Return: {annualized_alpha*100:.2f}%, Line of Best Fit: {annualized_best_fit_return*100:.2f}%, Tracking Error: {tracking_error_annualized*100:.2f}%\n(Logarithic Values)"
 
     # JSON data for react-chartjs-2
     data = {

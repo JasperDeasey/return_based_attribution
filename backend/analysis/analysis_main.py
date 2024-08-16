@@ -31,29 +31,42 @@ def process_data(data):
 
     fund_return_df, benchmark_return_df, active_return_df, regression_df = data_processing.create_return_dfs(data)
 
-    results = {}
+    results = {
+        'Absolute': {
+            12: {},
+            36: {},
+            60: {},
+            'Cumulative': {}
+        },
+        'Active': {
+            12: {},
+            36: {},
+            60: {},
+            'Cumulative': {}
+        }
+    }
 
-    results['cone_chart'] = cone_chart.create_cone_chart(active_return_df)
+    results['Absolute']['Cumulative']['cone_chart'] = cone_chart.create_cone_chart(active_return_df.iloc[:, 0])
+    results['Active']['Cumulative']['cone_chart'] = cone_chart.create_cone_chart(fund_return_df.iloc[:, 0])
+
 
     for return_df in [fund_return_df, active_return_df]:
         model_type = 'Active' if return_df.equals(active_return_df) else 'Absolute'
-        results[model_type] = {}  # Initialize dictionary for this model type
-        for months in [12, 36, 60]:
-            results[model_type][months] = {}
+        for time_frame in [12, 36, 60]:
+            months_int = time_frame
+            return_rolling, rolling_vol = simple_calcs.calculate_and_format_rolling(return_df, months_int)
 
-            return_rolling, rolling_vol = simple_calcs.calculate_and_format_rolling(return_df, months)
+            results[model_type][time_frame]['rolling_return'] = json.loads(return_rolling)
+            results[model_type][time_frame]['rolling_volatility'] = json.loads(rolling_vol)
 
-            results[model_type][months]['rolling_return'] = json.loads(return_rolling)
-            results[model_type][months]['rolling_volatility'] = json.loads(rolling_vol)
-
-            ols_regression = model.run_regression(return_df, regression_df, months, "OLS", model_type)
-            lasso_regression = model.run_regression(return_df, regression_df, months, "Lasso", model_type)
-            ridge_regression = model.run_regression(return_df, regression_df, months, "Ridge", model_type)
+            ols_regression = model.run_regression(return_df, regression_df, months_int, "OLS", model_type)
+            lasso_regression = model.run_regression(return_df, regression_df, months_int, "Lasso", model_type)
+            ridge_regression = model.run_regression(return_df, regression_df, months_int, "Ridge", model_type)
             
-            results[model_type][months]['regression_metric'] = {}
-            results[model_type][months]['regression_metric']['Lasso'] = lasso_regression
-            results[model_type][months]['regression_metric']['Ridge'] = ridge_regression
-            results[model_type][months]['regression_metric']['OLS'] = ols_regression
+            results[model_type][time_frame]['regression_metric'] = {}
+            results[model_type][time_frame]['regression_metric']['Lasso'] = lasso_regression
+            results[model_type][time_frame]['regression_metric']['Ridge'] = ridge_regression
+            results[model_type][time_frame]['regression_metric']['OLS'] = ols_regression
 
     return results
 

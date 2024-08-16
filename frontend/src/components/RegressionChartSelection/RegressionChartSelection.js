@@ -51,8 +51,8 @@ const RegressionChartSelection = ({ data, metric }) => {
             <ToggleButton value="Absolute" aria-label="Absolute">
               Absolute
             </ToggleButton>
-            <ToggleButton value="Active" aria-label="Relative">
-              Relative
+            <ToggleButton value="Active" aria-label="Active">
+              Active
             </ToggleButton>
           </ToggleButtonGroup>
         </Grid>

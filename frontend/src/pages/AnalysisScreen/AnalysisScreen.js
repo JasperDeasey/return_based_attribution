@@ -4,6 +4,7 @@ import { useLocation } from 'react-router-dom';
 import LineChartComponent from '../../components/LineChartComponent/LineChartComponent';
 import ChartSelection from '../../components/ChartSelection/ChartSelection'; // Correct the import path if necessary
 import RegressionChartSelection from '../../components/RegressionChartSelection';
+import ConeChartSelection from '../../components/ConeChartSelection';
 
 const AnalysisScreen = () => {
   const location = useLocation();
@@ -15,6 +16,10 @@ const AnalysisScreen = () => {
       <h2>Analysis</h2>
       {data && (
         <>
+        <div className="chart-section">
+            <h3>Cone Chart</h3>
+            <ConeChartSelection data={data} metric="cone_chart" />
+          </div>
           <LineChartComponent chartData={data.cone_chart} />
           <div className="chart-section">
             <h3>Rolling Return</h3>

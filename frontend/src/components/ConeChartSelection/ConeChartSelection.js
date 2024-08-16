@@ -20,7 +20,7 @@ const ChartSelection = ({ data, metric }) => {
 
   const getChartData = () => {
     try {
-      return data[selectedType][selectedPeriod][metric];
+      return data[selectedType]['Cumulative'][metric];
     } catch {
       return { title: 'No Data', labels: [], datasets: [] };
     }
@@ -39,7 +39,7 @@ const ChartSelection = ({ data, metric }) => {
             <ToggleButton value="Absolute" aria-label="Absolute">
               Absolute
             </ToggleButton>
-            <ToggleButton value="Active" aria-label="Active">
+            <ToggleButton value="Active" aria-label="Relative">
               Active
             </ToggleButton>
           </ToggleButtonGroup>
@@ -52,14 +52,8 @@ const ChartSelection = ({ data, metric }) => {
             onChange={handlePeriodChange}
             aria-label="Time Period"
           >
-            <ToggleButton value={12} aria-label="1 Year">
-              1 yr
-            </ToggleButton>
-            <ToggleButton value={36} aria-label="3 Years">
-              3 yr
-            </ToggleButton>
-            <ToggleButton value={60} aria-label="5 Years">
-              5 yr
+            <ToggleButton value={'Cumulative'} aria-label="Cumulative">
+              Cumulative
             </ToggleButton>
           </ToggleButtonGroup>
         </Grid>
