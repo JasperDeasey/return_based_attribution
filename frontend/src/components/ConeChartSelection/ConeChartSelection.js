@@ -4,7 +4,7 @@ import LineChartComponent from '../LineChartComponent';
 
 const ChartSelection = ({ data, metric }) => {
   const [selectedType, setSelectedType] = useState('Absolute');
-  const [selectedPeriod, setSelectedPeriod] = useState(12); // Default to 1 yr (12 months)
+  const [selectedPeriod, setSelectedPeriod] = useState(0); // Default to 1 yr (12 months)
 
   const handleTypeChange = (event, newType) => {
     if (newType !== null) {
