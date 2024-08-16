@@ -5,7 +5,7 @@ import sys
 from dotenv import load_dotenv
 
 load_dotenv()
-base_path = os.getenv("BASE_PATH", ".")
+base_path = os.getenv("ANALYSIS_PATH", ".")
 
 sys.path.insert(0, os.path.abspath(base_path))
 import analysis.data_processing as data_processing
