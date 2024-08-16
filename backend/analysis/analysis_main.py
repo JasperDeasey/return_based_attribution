@@ -28,18 +28,18 @@ def process_data(data):
             12: {},
             36: {},
             60: {},
-            'Cumulative': {}
+            0: {}
         },
         'Active': {
             12: {},
             36: {},
             60: {},
-            'Cumulative': {}
+            0: {}
         }
     }
 
-    results['Absolute']['Cumulative']['cone_chart'] = cone_chart.create_cone_chart(active_return_df.iloc[:, 0])
-    results['Active']['Cumulative']['cone_chart'] = cone_chart.create_cone_chart(fund_return_df.iloc[:, 0])
+    results['Absolute'][0]['cone_chart'] = cone_chart.create_cone_chart(active_return_df.iloc[:, 0])
+    results['Active'][0]['cone_chart'] = cone_chart.create_cone_chart(fund_return_df.iloc[:, 0])
 
 
     for return_df in [fund_return_df, active_return_df]:

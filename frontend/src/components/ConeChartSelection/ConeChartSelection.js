@@ -20,7 +20,7 @@ const ChartSelection = ({ data, metric }) => {
 
   const getChartData = () => {
     try {
-      return data[selectedType]['Cumulative'][metric];
+      return data[selectedType][0][metric];
     } catch {
       return { title: 'No Data', labels: [], datasets: [] };
     }
