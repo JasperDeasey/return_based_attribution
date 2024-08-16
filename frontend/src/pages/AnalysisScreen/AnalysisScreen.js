@@ -16,11 +16,10 @@ const AnalysisScreen = () => {
       <h2>Analysis</h2>
       {data && (
         <>
-        <div className="chart-section">
+          <div className="cone-section">
             <h3>Cone Chart</h3>
             <ConeChartSelection data={data} metric="cone_chart" />
           </div>
-          <LineChartComponent chartData={data.cone_chart} />
           <div className="chart-section">
             <h3>Rolling Return</h3>
             <ChartSelection data={data} metric="rolling_return" />

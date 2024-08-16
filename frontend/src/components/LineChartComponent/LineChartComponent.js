@@ -104,9 +104,9 @@ const LineChartComponent = ({ chartData }) => {
         display: true,
       },
       title: {
-        display: !!chartData.title,  // Only display the title if it exists in the chartData
-        text: chartData.title,  // Set the title text from chartData
-        position: 'top',  // Position can be 'top', 'left', 'bottom', 'right'
+        display: !!chartData.title, 
+        text: chartData.title, 
+        position: 'top', 
         font: {
           size: 16  // Set font size (optional)
         }

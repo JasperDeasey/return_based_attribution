@@ -19,11 +19,10 @@ const ChartSelection = ({ data, metric }) => {
   };
 
   const getChartData = () => {
-    try {
-      return data[selectedType][0][metric];
-    } catch {
+    if (!data[selectedType] || !data[selectedType][0] || !data[selectedType][0][metric]) {
       return { title: 'No Data', labels: [], datasets: [] };
     }
+    return data[selectedType][0][metric];
   };
 
   return (
