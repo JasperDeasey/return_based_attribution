@@ -3,15 +3,11 @@ import pandas as pd
 import statsmodels.api as sm
 from sklearn.linear_model import Lasso, LassoCV, RidgeCV
 import logging
-import os
-import sys
 from dotenv import load_dotenv
+from . import simple_calcs
+
 
 load_dotenv()
-base_path = os.getenv("ANALYSIS_PATH", "")
-sys.path.insert(0, os.path.abspath(base_path))
-
-import simple_calcs as simple_calcs
 
 
 # Configure logging

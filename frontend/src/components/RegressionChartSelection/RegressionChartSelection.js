@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { ToggleButton, ToggleButtonGroup, Box, Grid } from '@mui/material';
-import StackedColumnChartComponent from '../StackedColumnChartComponent';
+import RegressionStatisticCharts_OLS from '../RegressionStatisticCharts_OLS/RegressionStatisticCharts_OLS';
+import RegressionStatisticCharts_Ridge from '../RegressionStatisticCharts_Ridge/RegressionStatisticCharts_Ridge';
+import RegressionStatisticCharts_Lasso from '../RegressionStatisticCharts_Lasso/RegressionStatisticCharts_Lasso';
+import StackedColumnChartComponent from '../StackedColumnChartComponent/StackedColumnChartComponent';
 
 const RegressionChartSelection = ({ data, metric }) => {
   const [selectedType, setSelectedType] = useState('Absolute');
@@ -35,6 +38,16 @@ const RegressionChartSelection = ({ data, metric }) => {
   const handleModelChange = (event, newModel) => {
     if (newModel !== null) {
       setSelectedModel(newModel);
+    }
+  };
+
+  const renderSelectedChart = () => {
+    if (selectedModel === 'OLS') {
+      return <RegressionStatisticCharts_OLS chartData={chartData.regression_stats} />;
+    } else if (selectedModel === 'Ridge') {
+      return <RegressionStatisticCharts_Ridge chartData={chartData.regression_stats} />;
+    } else if (selectedModel === 'Lasso') {
+      return <RegressionStatisticCharts_Lasso chartData={chartData.regression_stats} />;
     }
   };
 
@@ -98,6 +111,7 @@ const RegressionChartSelection = ({ data, metric }) => {
 
       <Box width="100%" mt={2}>
         <StackedColumnChartComponent chartData={chartData} />
+        {renderSelectedChart()}
       </Box>
     </Box>
   );

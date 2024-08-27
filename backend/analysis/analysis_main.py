@@ -1,17 +1,10 @@
 import json
 import logging
-import os
-import sys
-from dotenv import load_dotenv
 
-load_dotenv()
-base_path = os.getenv("ANALYSIS_PATH", ".")
-
-sys.path.insert(0, os.path.abspath(base_path))
-import data_processing as data_processing
-import model as model
-import cone_chart as cone_chart
-import simple_calcs as simple_calcs
+from . import data_processing
+from . import simple_calcs
+from . import model
+from . import cone_chart
 
 
 logging.basicConfig(level=logging.INFO)
