@@ -1,83 +1,83 @@
+# app.py
+
 import os
-from uuid import uuid4
-from flask import Flask, request, jsonify, send_from_directory
-from flask_cors import CORS, cross_origin
-from flask_sqlalchemy import SQLAlchemy
 import sys
+
+# Set the environment variable before any other imports
+os.environ['OBJC_DISABLE_INITIALIZE_FORK_SAFETY'] = 'YES'
+
+from flask import Flask, request, jsonify
 from dotenv import load_dotenv
+import redis
+from rq import Queue
+from flask_cors import CORS
+import logging
 
+# Load environment variables
 load_dotenv()
-base_path = os.getenv("BASE_PATH", "./")
 
-# Add the base path to sys.path
-sys.path.insert(0, os.path.abspath(base_path))
+# Configure logging
+logging.basicConfig(level=logging.INFO)
 
-# Now you can import your modules as usual
-import analysis.analysis_main as analysis
+# Add the backend directory to sys.path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-app = Flask(__name__, static_folder='../frontend/build', static_url_path='')
-CORS(app)
+# Import the process_data function directly
+from analysis.analysis_main import process_data
 
-uri = os.getenv("DATABASE_URL")
-if uri and uri.startswith("postgres://"):
-    uri = uri.replace("postgres://", "postgresql://")
+# Initialize Flask app
+app = Flask(__name__)
+CORS(app)  # Enable CORS
 
-app.config['SQLALCHEMY_DATABASE_URI'] = uri
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# Redis connection (Heroku sets REDIS_URL; default to localhost for development)
+try:
+    redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379')
+    conn = redis.from_url(redis_url)
+except Exception as e:
+    logging.error(f"Error connecting to Redis: {e}")
+    sys.exit(1)
 
-db = SQLAlchemy(app)
+# Initialize RQ queue
+q = Queue(connection=conn)
 
-tasks = {}
-
-def long_process(data):
-    return analysis.process_data(data)
-
+# Route to accept data and enqueue a background task
 @app.route('/submit-data', methods=['POST'])
-@cross_origin()
 def submit_data():
     data = request.get_json()
+    logging.info(f"Received data: {data}")
     if data:
-        task_id = str(uuid4())
-        tasks[task_id] = {
-            'status': 'processing',
-            'result': None
-        }
-        # Simulate background processing
-        def background_task(task_id, data):
-            try:
-                result = long_process(data)
-                tasks[task_id]['result'] = result
-                tasks[task_id]['status'] = 'completed'
-            except Exception as e:
-                tasks[task_id]['result'] = {'error': str(e)}
-                tasks[task_id]['status'] = 'error'
-        
-        from threading import Thread
-        thread = Thread(target=background_task, args=(task_id, data))
-        thread.start()
-
-        return jsonify({'task_id': task_id})
+        try:
+            # Enqueue the task using enqueue_call to specify job options explicitly
+            job = q.enqueue_call(
+                func=process_data,
+                args=(data,),    # Positional arguments for process_data
+                kwargs={},       # Keyword arguments for process_data
+                timeout=600      # Job option
+            )
+            logging.info(f"Enqueued job: {job.get_id()}")
+            return jsonify({'task_id': job.get_id()}), 202  # Return 202 Accepted
+        except Exception as e:
+            logging.error(f"Failed to enqueue job: {e}", exc_info=True)
+            return jsonify({"error": "Failed to enqueue job"}), 500
     else:
+        logging.error("No data provided in request")
         return jsonify({"error": "No data provided"}), 400
 
+# Route to check the status of a task
 @app.route('/task-status/<task_id>', methods=['GET'])
-@cross_origin()
 def task_status(task_id):
-    task = tasks.get(task_id)
-    if task:
-        return jsonify(task)
+    job = q.fetch_job(task_id)
+    if job:
+        if job.is_finished:
+            return jsonify({'status': 'completed', 'result': job.result})
+        elif job.is_failed:
+            return jsonify({'status': 'error', 'error': str(job.exc_info)})
+        else:
+            return jsonify({'status': 'processing'})
     else:
-        return jsonify({'error': 'Task not found'}), 404
+        return jsonify({'error': 'Task not found. Ensure the job ID is correct or check if the Redis server is running.'}), 404
 
-@app.route('/', defaults={'path': ''})
-@app.route('/<path:path>')
-@cross_origin()
-def serve(path):
-    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
-        return send_from_directory(app.static_folder, path)
-    else:
-        return send_from_directory(app.static_folder, 'index.html')
-
+# Run Flask app
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(debug=True, host="0.0.0.0", port=port)

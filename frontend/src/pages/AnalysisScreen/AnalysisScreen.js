@@ -1,40 +1,65 @@
+// frontend/src/screens/AnalysisScreen/AnalysisScreen.js
+
 import React from 'react';
 import './AnalysisScreen.css';
 import { useLocation } from 'react-router-dom';
-import LineChartComponent from '../../components/LineChartComponent/LineChartComponent';
-import ChartSelection from '../../components/ChartSelection/ChartSelection'; // Correct the import path if necessary
-import RegressionChartSelection from '../../components/RegressionChartSelection';
-import ConeChartSelection from '../../components/ConeChartSelection';
+import ConeChartSelection from '../../components/ConeChartSelection/ConeChartSelection';
+import ChartSelection from '../../components/ChartSelection/ChartSelection';
+import RegressionChartSelection from '../../components/RegressionChartSelection/RegressionChartSelection';
+import RegressionStatisticsTable from '../../components/RegressionStatisticsTable/RegressionStatisticsTable';
+import PValuesHistogram from '../../components/PValuesHistogram/PValuesHistogram';
+import { Box, Typography, Divider } from '@mui/material';
 
 const AnalysisScreen = () => {
   const location = useLocation();
   const data = location.state?.data;
-  console.log("Received Data:", data);  // You can use this data as needed
 
   return (
-    <div className="analysis-screen-container">
-      <h2>Analysis</h2>
+    <Box className="analysis-screen-container" p={2}>
+      <Typography variant="h4" gutterBottom>
+        Analysis
+      </Typography>
       {data && (
         <>
-          <div className="cone-section">
-            <h3>Cone Chart</h3>
+          <Box my={4}>
+            <Typography variant="h5">Cone Chart</Typography>
             <ConeChartSelection data={data} metric="cone_chart" />
-          </div>
-          <div className="chart-section">
-            <h3>Rolling Return</h3>
+          </Box>
+
+          <Divider />
+
+          <Box my={4}>
+            <Typography variant="h5">Rolling Return</Typography>
             <ChartSelection data={data} metric="rolling_return" />
-          </div>
-          <div className="chart-section">
-            <h3>Rolling Volatility</h3>
+          </Box>
+
+          <Divider />
+
+          <Box my={4}>
+            <Typography variant="h5">Rolling Volatility</Typography>
             <ChartSelection data={data} metric="rolling_volatility" />
-          </div>
-          <div className="chart-section">
-            <h3>Regression Models</h3>
+          </Box>
+
+          <Divider />
+
+          <Box my={4}>
+            <Typography variant="h5">Regression Models</Typography>
             <RegressionChartSelection data={data} metric="regression_metric" />
-          </div>
+          </Box>
+
+          <Divider />
+
+          <Box my={4} display="flex" flexDirection={{ xs: 'column', md: 'row' }} gap={4}>
+            <Box flex={1}>
+              <RegressionStatisticsTable regressionStats={data.regression_stats} />
+            </Box>
+            <Box flex={1}>
+              <PValuesHistogram regressionStats={data.regression_stats} />
+            </Box>
+          </Box>
         </>
       )}
-    </div>
+    </Box>
   );
 };
 

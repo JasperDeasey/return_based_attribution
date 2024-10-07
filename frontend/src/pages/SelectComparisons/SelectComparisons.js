@@ -11,14 +11,14 @@ const initialData = {
   fund: { description: 'Input Fund Name', pastedData: [] },
   benchmark: { description: 'ACWI', source: 'MSCI ACWI TR Net USD' },
   residual_return_streams: [
-    { description: 'Equity', source: 'MSCI ACWI TR Gross USD', residualization: [] },
+    { description: 'Equity', source: 'MSCI ACWI TR Net USD', residualization: [] },
     { description: 'Interest Rates', source: 'Bloomberg Global Aggregate - Sovereign USD', residualization: [] },
     { description: 'Credit', source: 'ICE BofA Global Corporate Index', residualization: ['Equity', 'Interest Rates'] },
-    { description: 'Emerging Markets', source: 'MSCI EM TR Gross USD', residualization: ['Equity', 'Interest Rates', 'Credit'] },
-    { description: 'Momentum', source: 'MSCI ACWI Momentum TR Gross USD', residualization: ['Equity', 'Interest Rates', 'Credit', 'Emerging Markets'] },
-    { description: 'Quality', source: 'MSCI ACWI Quality TR Gross USD', residualization: ['Equity', 'Interest Rates', 'Credit', 'Emerging Markets'] },
-    { description: 'Small Cap', source: 'MSCI ACWI Small Cap TR Gross USD', residualization: ['Equity', 'Interest Rates', 'Credit', 'Emerging Markets'] },
-    { description: 'Value', source: 'MSCI ACWI Value TR Gross USD', residualization: ['Equity', 'Interest Rates', 'Credit', 'Emerging Markets'] }
+    { description: 'Emerging Markets', source: 'MSCI EM TR Net USD', residualization: ['Equity', 'Interest Rates', 'Credit'] },
+    { description: 'Momentum', source: 'MSCI ACWI Momentum TR Net USD', residualization: ['Equity', 'Interest Rates', 'Credit', 'Emerging Markets'] },
+    { description: 'Quality', source: 'MSCI ACWI Quality TR Net USD', residualization: ['Equity', 'Interest Rates', 'Credit', 'Emerging Markets'] },
+    { description: 'Small Cap', source: 'MSCI ACWI Small Cap TR Net USD', residualization: ['Equity', 'Interest Rates', 'Credit', 'Emerging Markets'] },
+    { description: 'Value', source: 'MSCI ACWI Value TR Net USD', residualization: ['Equity', 'Interest Rates', 'Credit', 'Emerging Markets'] }
   ]
 };
 
@@ -60,7 +60,8 @@ const SelectComparisons = () => {
     setSnackbarMessage("This may take a few minutes...");
     setSnackbarOpen(true);
 
-    const url = 'https://return-attribution-c87301303521.herokuapp.com/submit-data';
+    // const url = 'https://return-attribution-c87301303521.herokuapp.com/submit-data';
+    const url = 'http://127.0.0.1:5000/submit-data';
 
     fetch(url, {
         method: 'POST',
@@ -94,7 +95,8 @@ const SelectComparisons = () => {
   };
 
   const checkTaskStatus = (taskId) => {
-    const statusUrl = `https://return-attribution-c87301303521.herokuapp.com/task-status/${taskId}`;
+    // const statusUrl = `https://return-attribution-c87301303521.herokuapp.com/task-status/${taskId}`;
+    const statusUrl = `http://127.0.0.1:5000/task-status/${taskId}`;
 
     const intervalId = setInterval(() => {
         fetch(statusUrl)
@@ -114,14 +116,14 @@ const SelectComparisons = () => {
                 navigate('/analysis', { state: { data: statusData.result } });
                 setLoading(false);
                 clearInterval(intervalId);
-            } else if (statusData.status === 'error') {
-                console.error('Error:', statusData.result.error);
+              } else if (statusData.status === 'error') {
                 setSnackbarSeverity('error');
-                setSnackbarMessage(`Error: ${statusData.result.error}`);
+                setSnackbarMessage(`Error: ${statusData.error}`);
                 setSnackbarOpen(true);
                 setLoading(false);
                 clearInterval(intervalId);
-            } else {
+            }
+             else {
                 console.log('Processing...');
             }
         })

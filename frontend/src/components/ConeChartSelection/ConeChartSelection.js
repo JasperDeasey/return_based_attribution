@@ -38,7 +38,7 @@ const ChartSelection = ({ data, metric }) => {
             <ToggleButton value="Absolute" aria-label="Absolute">
               Absolute
             </ToggleButton>
-            <ToggleButton value="Active" aria-label="Relative">
+            <ToggleButton value="Active" aria-label="Active">
               Active
             </ToggleButton>
           </ToggleButtonGroup>
