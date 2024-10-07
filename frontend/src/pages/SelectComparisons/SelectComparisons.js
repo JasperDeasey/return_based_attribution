@@ -60,8 +60,8 @@ const SelectComparisons = () => {
     setSnackbarMessage("This may take a few minutes...");
     setSnackbarOpen(true);
 
-    // const url = 'https://return-attribution-c87301303521.herokuapp.com/submit-data';
-    const url = 'http://127.0.0.1:5000/submit-data';
+    const url = 'https://return-attribution-c87301303521.herokuapp.com/submit-data';
+    // const url = 'http://127.0.0.1:5000/submit-data';
 
     fetch(url, {
         method: 'POST',
@@ -95,8 +95,8 @@ const SelectComparisons = () => {
   };
 
   const checkTaskStatus = (taskId) => {
-    // const statusUrl = `https://return-attribution-c87301303521.herokuapp.com/task-status/${taskId}`;
-    const statusUrl = `http://127.0.0.1:5000/task-status/${taskId}`;
+    const statusUrl = `https://return-attribution-c87301303521.herokuapp.com/task-status/${taskId}`;
+    // const statusUrl = `http://127.0.0.1:5000/task-status/${taskId}`;
 
     const intervalId = setInterval(() => {
         fetch(statusUrl)
