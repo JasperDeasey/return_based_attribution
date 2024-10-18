@@ -1,5 +1,3 @@
-# backend/app.py
-
 import os
 import sys
 from flask import Flask, request, jsonify, send_from_directory
@@ -21,7 +19,7 @@ from celery_app import celery
 from analysis.tasks import process_data
 
 # Initialize Flask app
-app = Flask(__name__, static_folder='../frontend/build', static_url_path='/')
+app = Flask(__name__, static_folder='static', static_url_path='/')
 CORS(app)  # Enable CORS
 
 # Route to accept data and enqueue a background task
@@ -59,7 +57,6 @@ def task_status(task_id):
         # Task is in progress
         response = {'status': task.state}
     return jsonify(response)
-
 
 # Serve React App
 @app.route('/', defaults={'path': ''})
