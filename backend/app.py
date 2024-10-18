@@ -2,7 +2,7 @@
 
 import os
 import sys
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from dotenv import load_dotenv
 from flask_cors import CORS
 import logging
@@ -59,6 +59,16 @@ def task_status(task_id):
         # Task is in progress
         response = {'status': task.state}
     return jsonify(response)
+
+
+# Serve React App
+@app.route('/', defaults={'path': ''})
+@app.route('/<path:path>')
+def serve_react_app(path):
+    if path != "" and os.path.exists(os.path.join(app.static_folder, path)):
+        return send_from_directory(app.static_folder, path)
+    else:
+        return send_from_directory(app.static_folder, 'index.html')
 
 # Run Flask app
 if __name__ == "__main__":
