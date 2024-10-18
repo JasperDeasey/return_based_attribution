@@ -1,6 +1,11 @@
 # backend/worker.py
 
 import os
+os.environ['OBJC_DISABLE_INITIALIZE_FORK_SAFETY'] = 'YES'
+
+import multiprocessing
+multiprocessing.set_start_method('spawn', force=True)
+
 import sys
 from dotenv import load_dotenv
 import redis

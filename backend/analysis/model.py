@@ -153,7 +153,7 @@ def fit_model_and_get_stats(X, y, model_type):
             cv=tscv,
             scoring='r2',
             gcv_mode=None,
-            store_cv_values=False
+            store_cv_results=False
         )
         model.fit(X_scaled, y)
         coefficients = model.coef_ / scaler.scale_
@@ -168,9 +168,9 @@ def fit_model_and_get_stats(X, y, model_type):
         model = LassoCV(
             alphas=alphas,
             cv=tscv,
-            max_iter=5000,
+            max_iter=10000,
             fit_intercept=False,
-            n_jobs=-1,
+            n_jobs=1,
             random_state=42,
             selection='random'  # For efficiency
         )

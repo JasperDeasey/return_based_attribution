@@ -22,6 +22,9 @@ const initialData = {
   ]
 };
 
+const base_url = 'https://return-attribution-c87301303521.herokuapp.com';
+// const base_url = 'http://127.0.0.1:5000';
+
 const SelectComparisons = () => {
   const navigate = useNavigate();
   const [data, setData] = useState(initialData);
@@ -60,8 +63,7 @@ const SelectComparisons = () => {
     setSnackbarMessage("This may take a few minutes...");
     setSnackbarOpen(true);
 
-    const url = 'https://return-attribution-c87301303521.herokuapp.com/submit-data';
-    // const url = 'http://127.0.0.1:5000/submit-data';
+    const url = base_url + '/submit-data';
 
     fetch(url, {
         method: 'POST',
@@ -94,9 +96,9 @@ const SelectComparisons = () => {
     localStorage.removeItem('comparisonData'); // Clear saved data from localStorage
   };
 
+    // Modify the checkTaskStatus function to handle new task states
   const checkTaskStatus = (taskId) => {
-    const statusUrl = `https://return-attribution-c87301303521.herokuapp.com/task-status/${taskId}`;
-    // const statusUrl = `http://127.0.0.1:5000/task-status/${taskId}`;
+    const statusUrl = base_url + `/task-status/${taskId}`;
 
     const intervalId = setInterval(() => {
         fetch(statusUrl)
@@ -116,15 +118,16 @@ const SelectComparisons = () => {
                 navigate('/analysis', { state: { data: statusData.result } });
                 setLoading(false);
                 clearInterval(intervalId);
-              } else if (statusData.status === 'error') {
+            } else if (statusData.status === 'error') {
                 setSnackbarSeverity('error');
                 setSnackbarMessage(`Error: ${statusData.error}`);
                 setSnackbarOpen(true);
                 setLoading(false);
                 clearInterval(intervalId);
-            }
-             else {
+            } else if (statusData.status === 'pending' || statusData.status === 'STARTED') {
                 console.log('Processing...');
+            } else {
+                console.log(`Task status: ${statusData.status}`);
             }
         })
         .catch(error => {
@@ -136,7 +139,8 @@ const SelectComparisons = () => {
             clearInterval(intervalId);
         });
     }, 5000); // Check every 5 seconds
-};
+  };
+
 
   const handleFundDescriptionChange = (field, value) => {
     setData(prevData => ({
