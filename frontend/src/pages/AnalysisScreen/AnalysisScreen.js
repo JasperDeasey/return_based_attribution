@@ -6,13 +6,13 @@ import { useLocation } from 'react-router-dom';
 import ConeChartSelection from '../../components/ConeChartSelection/ConeChartSelection';
 import ChartSelection from '../../components/ChartSelection/ChartSelection';
 import RegressionChartSelection from '../../components/RegressionChartSelection/RegressionChartSelection';
-import RegressionStatisticsTable from '../../components/RegressionStatisticsTable/RegressionStatisticsTable';
-import PValuesHistogram from '../../components/PValuesHistogram/PValuesHistogram';
 import { Box, Typography, Divider } from '@mui/material';
 
 const AnalysisScreen = () => {
   const location = useLocation();
   const data = location.state?.data;
+
+  console.log(data);
 
   return (
     <Box className="analysis-screen-container" p={2}>
@@ -48,15 +48,6 @@ const AnalysisScreen = () => {
           </Box>
 
           <Divider />
-
-          <Box my={4} display="flex" flexDirection={{ xs: 'column', md: 'row' }} gap={4}>
-            <Box flex={1}>
-              <RegressionStatisticsTable regressionStats={data.regression_stats} />
-            </Box>
-            <Box flex={1}>
-              <PValuesHistogram regressionStats={data.regression_stats} />
-            </Box>
-          </Box>
         </>
       )}
     </Box>

@@ -9,9 +9,9 @@ import {
   Typography,
   Tooltip,
 } from '@mui/material';
-import InfoIcon from '@mui/icons-material/Info';
 import StackedColumnChartComponent from '../StackedColumnChartComponent/StackedColumnChartComponent';
 import modelDescriptions from './modelDescriptions';
+import HeatMapComponent from '../HeatMapComponent/HeatMapComponent';
 
 const RegressionChartSelection = ({ data, metric }) => {
   const [selectedType, setSelectedType] = useState('Absolute');
@@ -48,6 +48,47 @@ const RegressionChartSelection = ({ data, metric }) => {
   if (!chartData) {
     return <Typography>No Data Available</Typography>;
   }
+
+  // Extract factor names from datasets, excluding 'Residuals' and 'Total Return'
+  const factorNames = chartData.datasets
+    .map((dataset) => dataset.label)
+    .filter((label) => label !== 'Residuals' && label !== 'Total Return');
+
+  // Prepare data for heatmaps
+  const regressionStats = chartData.regression_stats;
+  const dates = Object.keys(regressionStats);
+
+  // Format dates
+  const formattedDates = dates.map((date) => {
+    const dateObj = new Date(date);
+    const options = { month: 'short', year: '2-digit' };
+    return dateObj.toLocaleDateString(undefined, options); // e.g., "Aug 23"
+  });
+
+  // Initialize data structures
+  const betaData = factorNames.map(() => []); // Array of arrays for beta values
+  const pValueData = factorNames.map(() => []); // Array of arrays for p-values
+
+  const rSquaredValues = [];
+  const adjRSquaredValues = [];
+  const bestAlphaValues = [];
+  const scoreValues = [];
+
+  dates.forEach((date) => {
+    const stats = regressionStats[date];
+    factorNames.forEach((_, factorIdx) => {
+      const beta = stats.coefficients[factorIdx];
+      betaData[factorIdx].push(beta != null ? beta : null);
+
+      const pValue = stats.p_values ? stats.p_values[factorIdx] : null;
+      pValueData[factorIdx].push(pValue != null ? pValue : null);
+    });
+
+    rSquaredValues.push(stats.r_squared != null ? stats.r_squared : null);
+    adjRSquaredValues.push(stats.adj_r_squared != null ? stats.adj_r_squared : null);
+    bestAlphaValues.push(stats.best_alpha != null ? stats.best_alpha : null);
+    scoreValues.push(stats.score != null ? stats.score : null);
+  });
 
   return (
     <Box width="100%">
@@ -109,6 +150,64 @@ const RegressionChartSelection = ({ data, metric }) => {
 
       {/* Chart Component */}
       <StackedColumnChartComponent chartData={chartData} />
+
+      {/* Heatmaps */}
+      <Box mt={4}>
+        <HeatMapComponent
+          title="Beta Heatmap"
+          xLabels={formattedDates}
+          yLabels={factorNames}
+          data={betaData}
+          metricType="diverging"
+          centerValue={0}
+        />
+        {pValueData.some((row) => row.some((val) => val != null)) && (
+          <HeatMapComponent
+            title="P-Value Heatmap"
+            xLabels={formattedDates}
+            yLabels={factorNames}
+            data={pValueData}
+            metricType="p-value"
+            centerValue={0.05} // Center around significance level
+          />
+        )}
+        {rSquaredValues.some((val) => val != null) && (
+          <HeatMapComponent
+            title="R² Heatmap"
+            xLabels={formattedDates}
+            yLabels={['R²']}
+            data={[rSquaredValues]}
+            metricType="sequential"
+          />
+        )}
+        {adjRSquaredValues.some((val) => val != null) && (
+          <HeatMapComponent
+            title="Adjusted R² Heatmap"
+            xLabels={formattedDates}
+            yLabels={['Adjusted R²']}
+            data={[adjRSquaredValues]}
+            metricType="sequential"
+          />
+        )}
+        {bestAlphaValues.some((val) => val != null) && (
+          <HeatMapComponent
+            title="Best Alpha Heatmap"
+            xLabels={formattedDates}
+            yLabels={['Best Alpha']}
+            data={[bestAlphaValues]}
+            metricType="sequential"
+          />
+        )}
+        {scoreValues.some((val) => val != null) && (
+          <HeatMapComponent
+            title="Score Heatmap"
+            xLabels={formattedDates}
+            yLabels={['Score']}
+            data={[scoreValues]}
+            metricType="sequential"
+          />
+        )}
+      </Box>
     </Box>
   );
 };

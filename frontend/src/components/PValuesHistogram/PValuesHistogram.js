@@ -8,6 +8,7 @@ import { Box, Typography } from '@mui/material';
 ChartJS.register(CategoryScale, LinearScale, BarElement, Tooltip, Title);
 
 const PValuesHistogram = ({ regressionStats }) => {
+
   const histogramData = useMemo(() => {
     if (!regressionStats || Object.keys(regressionStats).length === 0) return null;
 
@@ -36,6 +37,8 @@ const PValuesHistogram = ({ regressionStats }) => {
       ],
     };
   }, [regressionStats]);
+
+  console.log("P Values Histogram:", histogramData);
 
   if (!histogramData) return null;
 
