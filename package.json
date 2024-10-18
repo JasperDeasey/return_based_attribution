@@ -4,9 +4,16 @@
   "scripts": {
     "heroku-postbuild": "cd frontend && npm install && npm run build && cp -r build ../backend/static/"
   },
+  "engines": {
+    "node": "20.x",
+    "npm": ">=10.8.0"
+  },
   "dependencies": {
     "chart.js": "^4.4.3",
     "dotenv": "^16.4.5",
     "react-chartjs-2": "^5.2.0"
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-private-property-in-object": "^7.18.6"
   }
 }
