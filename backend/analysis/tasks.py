@@ -10,7 +10,7 @@ from . import cone_chart
 from celery_app import celery  # Import the Celery app
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 logger = logging.getLogger(__name__)
 
 @celery.task(bind=True)

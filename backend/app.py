@@ -11,7 +11,7 @@ import logging
 load_dotenv()
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.WARNING)
 
 # Add the backend directory to sys.path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
@@ -62,5 +62,5 @@ def task_status(task_id):
 
 # Run Flask app
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(debug=False, host="0.0.0.0", port=port)
+    port = int(os.environ.get('PORT', 5000))
+    app.run(host='0.0.0.0', port=port)
