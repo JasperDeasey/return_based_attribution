@@ -11,7 +11,7 @@ import logging
 load_dotenv()
 
 # Configure logging
-logging.basicConfig(level=logging.WARNING)
+logging.basicConfig(level=logging.DEBUG)
 
 # Add the backend directory to sys.path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
