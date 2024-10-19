@@ -31,6 +31,12 @@ celery.conf.update(
     result_serializer='json',
     timezone='UTC',
     enable_utc=True,
+    broker_use_ssl={
+        'ssl_cert_reqs': 'CERT_NONE'  # Use 'CERT_REQUIRED' for more secure configurations
+    },
+    redis_backend_use_ssl={
+        'ssl_cert_reqs': 'CERT_NONE'
+    }
 )
 
 # Autodiscover tasks from the 'analysis' module
