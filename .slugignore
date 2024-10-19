@@ -1,0 +1,7 @@
+node_modules/
+venv/
+*.log
+*.md
+frontend/node_modules/
+frontend/.git/
+backend/.git/

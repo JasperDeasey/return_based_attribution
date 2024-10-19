@@ -5,6 +5,7 @@ import sys
 import multiprocessing
 from celery import Celery
 from dotenv import load_dotenv
+import ssl  # Import the ssl module
 
 # Load environment variables
 load_dotenv()
@@ -24,7 +25,7 @@ redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
 # Initialize Celery
 celery = Celery('tasks', broker=redis_url, backend=redis_url)
 
-# Celery configuration
+# Celery configuration with SSL options for Redis
 celery.conf.update(
     task_serializer='json',
     accept_content=['json'],
@@ -32,10 +33,10 @@ celery.conf.update(
     timezone='UTC',
     enable_utc=True,
     broker_use_ssl={
-        'ssl_cert_reqs': 'CERT_NONE'  # Use 'CERT_REQUIRED' for more secure configurations
+        'ssl_cert_reqs': ssl.CERT_REQUIRED  # Use CERT_REQUIRED for secure connections
     },
     redis_backend_use_ssl={
-        'ssl_cert_reqs': 'CERT_NONE'
+        'ssl_cert_reqs': ssl.CERT_REQUIRED
     }
 )
 
