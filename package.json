@@ -6,8 +6,8 @@
 
   },
   "engines": {
-    "node": "20.x",
-    "npm": ">=10.8.0"
+    "node": "18.x",
+    "npm": ">=8.0.0"
   },
   "dependencies": {
     "chart.js": "^4.4.3",
