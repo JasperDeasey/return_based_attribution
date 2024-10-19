@@ -22,8 +22,8 @@ const initialData = {
   ]
 };
 
-// const base_url = 'https://return-attribution-c87301303521.herokuapp.com';
-const base_url = 'http://127.0.0.1:5000';
+const base_url = 'https://return-attribution-c87301303521.herokuapp.com';
+// const base_url = 'http://127.0.0.1:5000';
 
 const SelectComparisons = () => {
   const navigate = useNavigate();
