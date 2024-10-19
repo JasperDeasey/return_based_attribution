@@ -1,5 +1,3 @@
-# backend/celery_app.py
-
 import os
 import sys
 import multiprocessing
@@ -19,11 +17,14 @@ multiprocessing.set_start_method('spawn', force=True)
 # Append the backend directory to sys.path to ensure modules are discoverable
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# Get Redis URL from environment variables
-redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+# Get Redis TLS URL from environment variables
+redis_tls_url = os.getenv('REDIS_TLS_URL')
 
-# Initialize Celery
-celery = Celery('tasks', broker=redis_url, backend=redis_url)
+if not redis_tls_url:
+    raise ValueError("REDIS_TLS_URL is not set in the environment variables.")
+
+# Initialize Celery with Redis URL for both broker and backend
+celery = Celery('tasks', broker=redis_tls_url, backend=redis_tls_url)
 
 # Celery configuration with SSL options for Redis
 celery.conf.update(
@@ -33,10 +34,10 @@ celery.conf.update(
     timezone='UTC',
     enable_utc=True,
     broker_use_ssl={
-        'ssl_cert_reqs': ssl.CERT_REQUIRED  # Use CERT_REQUIRED for secure connections
+        'ssl_cert_reqs': ssl.CERT_REQUIRED  # Use CERT_REQUIRED for secure SSL
     },
     redis_backend_use_ssl={
-        'ssl_cert_reqs': ssl.CERT_REQUIRED
+        'ssl_cert_reqs': ssl.CERT_REQUIRED  # Ensure backend SSL is also secure
     }
 )
 

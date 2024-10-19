@@ -9,11 +9,14 @@
         "description": "The environment for the Flask app",
         "value": "production"
       },
-      "REDIS_URL": {
-        "description": "URL for Redis instance",
-        "value": "rediss://:p7e69c165fe4e03ecd5f10fdc607fce5574b7b23aca9d75e8f3e149820a9ac7fa@ec2-3-231-231-96.compute-1.amazonaws.com:20530"
+      "REDIS_TLS_URL": {
+        "description": "URL for Redis instance with TLS enabled",
+        "required": true
       }
     },
+    "addons": [
+      "heroku-redis"
+    ],
     "buildpacks": [
       {
         "url": "heroku/nodejs"
