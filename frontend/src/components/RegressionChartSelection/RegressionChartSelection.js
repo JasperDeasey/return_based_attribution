@@ -220,7 +220,7 @@ const RegressionChartSelection = ({ data, metric }) => {
           <CardContent>
           <HeatMapComponent
             xLabels={formattedDates}
-            yLabels={['R²']}
+            yLabels={['Best Alpha']}
             data={[bestAlphaValues]}
             metricType="sequential"
           />
