@@ -95,7 +95,7 @@ const RegressionChartSelection = ({ data, metric }) => {
 
   return (
     <Box width="100%">
-<Grid
+      <Grid
         container
         spacing={2}
         justifyContent="space-between"
@@ -201,8 +201,46 @@ const RegressionChartSelection = ({ data, metric }) => {
             </CardContent>
           </Card>
         )}
-        {/* Add similar blocks for Adjusted R², Best Alpha, and Score Heatmaps if needed */}
-      </Box>
+        {adjRSquaredValues.some((val) => val != null) && (
+          <Card variant="outlined" sx={{ mb: 4 }}>
+          <CardHeader title="Adjusted R² Heatmap" />
+          <CardContent>
+          <HeatMapComponent
+            xLabels={formattedDates}
+            yLabels={['Adjusted R²']}
+            data={[adjRSquaredValues]}
+            metricType="sequential"
+          />
+          </CardContent>
+          </Card>
+        )}
+        {bestAlphaValues.some((val) => val != null) && (
+          <Card variant="outlined" sx={{ mb: 4 }}>
+          <CardHeader title="Best Alpha Heatmap" />
+          <CardContent>
+          <HeatMapComponent
+            xLabels={formattedDates}
+            yLabels={['R²']}
+            data={[bestAlphaValues]}
+            metricType="sequential"
+          />
+          </CardContent>
+          </Card>
+        )}
+        {scoreValues.some((val) => val != null) && (
+          <Card variant="outlined" sx={{ mb: 4 }}>
+          <CardHeader title="R² Heatmap" />
+          <CardContent>
+          <HeatMapComponent
+            xLabels={formattedDates}
+            yLabels={['R²']}
+            data={[scoreValues]}
+            metricType="sequential"
+          />
+          </CardContent>
+          </Card>
+        )}
+        </Box>
     </Box>
   );
 };
