@@ -92,12 +92,11 @@ const FundReturnInput = ({ fund, onDescriptionChange, updateFundReturns, pastedD
           {cumulativeReturn !== null && (
             <CheckCircleIcon style={{ color: 'green', padding: '5px'}} fontSize='large'/>
           )}
+          <Typography variant="subtitle2" color="textSecondary" sx={{ mt: 0.5 , pl: 1 , pr: 1}}>
+            Paste returns below
+          </Typography>
         </Box>
-        <IconButton onClick={(e) => {
-          e.stopPropagation();
-          // Code to handle removal if necessary
-        }}>
-        </IconButton>
+
       </AccordionSummary>
       <AccordionDetails>
         <ReturnStreamPaste

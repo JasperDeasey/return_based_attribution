@@ -8,6 +8,9 @@ import {
   Grid,
   Typography,
   Tooltip,
+  Card,
+  CardContent,
+  CardHeader,
 } from '@mui/material';
 import StackedColumnChartComponent from '../StackedColumnChartComponent/StackedColumnChartComponent';
 import modelDescriptions from './modelDescriptions';
@@ -92,7 +95,7 @@ const RegressionChartSelection = ({ data, metric }) => {
 
   return (
     <Box width="100%">
-      <Grid
+<Grid
         container
         spacing={2}
         justifyContent="space-between"
@@ -149,64 +152,56 @@ const RegressionChartSelection = ({ data, metric }) => {
       </Grid>
 
       {/* Chart Component */}
-      <StackedColumnChartComponent chartData={chartData} />
+      <Card variant="outlined" sx={{ mb: 4 }}>
+        <CardContent>
+          <StackedColumnChartComponent chartData={chartData} />
+        </CardContent>
+      </Card>
 
       {/* Heatmaps */}
       <Box mt={4}>
-        <HeatMapComponent
-          title="Beta Heatmap"
-          xLabels={formattedDates}
-          yLabels={factorNames}
-          data={betaData}
-          metricType="diverging"
-          centerValue={0}
-        />
+        {betaData.some((row) => row.some((val) => val != null)) && (
+          <Card variant="outlined" sx={{ mb: 4 }}>
+            <CardHeader title="Beta Heatmap" />
+            <CardContent>
+              <HeatMapComponent
+                xLabels={formattedDates}
+                yLabels={factorNames}
+                data={betaData}
+                metricType="diverging"
+                centerValue={0}
+              />
+            </CardContent>
+          </Card>
+        )}
         {pValueData.some((row) => row.some((val) => val != null)) && (
-          <HeatMapComponent
-            title="P-Value Heatmap"
-            xLabels={formattedDates}
-            yLabels={factorNames}
-            data={pValueData}
-            metricType="p-value"
-            centerValue={0.05} // Center around significance level
-          />
+          <Card variant="outlined" sx={{ mb: 4 }}>
+            <CardHeader title="P-Value Heatmap" />
+            <CardContent>
+              <HeatMapComponent
+                xLabels={formattedDates}
+                yLabels={factorNames}
+                data={pValueData}
+                metricType="p-value"
+                centerValue={0.05}
+              />
+            </CardContent>
+          </Card>
         )}
         {rSquaredValues.some((val) => val != null) && (
-          <HeatMapComponent
-            title="R² Heatmap"
-            xLabels={formattedDates}
-            yLabels={['R²']}
-            data={[rSquaredValues]}
-            metricType="sequential"
-          />
+          <Card variant="outlined" sx={{ mb: 4 }}>
+            <CardHeader title="R² Heatmap" />
+            <CardContent>
+              <HeatMapComponent
+                xLabels={formattedDates}
+                yLabels={['R²']}
+                data={[rSquaredValues]}
+                metricType="sequential"
+              />
+            </CardContent>
+          </Card>
         )}
-        {adjRSquaredValues.some((val) => val != null) && (
-          <HeatMapComponent
-            title="Adjusted R² Heatmap"
-            xLabels={formattedDates}
-            yLabels={['Adjusted R²']}
-            data={[adjRSquaredValues]}
-            metricType="sequential"
-          />
-        )}
-        {bestAlphaValues.some((val) => val != null) && (
-          <HeatMapComponent
-            title="Best Alpha Heatmap"
-            xLabels={formattedDates}
-            yLabels={['Best Alpha']}
-            data={[bestAlphaValues]}
-            metricType="sequential"
-          />
-        )}
-        {scoreValues.some((val) => val != null) && (
-          <HeatMapComponent
-            title="Score Heatmap"
-            xLabels={formattedDates}
-            yLabels={['Score']}
-            data={[scoreValues]}
-            metricType="sequential"
-          />
-        )}
+        {/* Add similar blocks for Adjusted R², Best Alpha, and Score Heatmaps if needed */}
       </Box>
     </Box>
   );

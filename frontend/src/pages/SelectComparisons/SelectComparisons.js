@@ -1,11 +1,22 @@
+// SelectComparisons.js
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Typography, Box, Button, IconButton, CircularProgress, Snackbar, Alert } from '@mui/material';
+import {
+  Typography,
+  Box,
+  Button,
+  IconButton,
+  CircularProgress,
+  Snackbar,
+  Alert,
+  Paper,
+  Grid,
+  Container,
+} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import RegressionAccordion from '../../components/RegressionAccordion/RegressionAccordion';
 import FundReturnInput from '../../components/FundReturnInput';
 import BenchmarkInputs from '../../components/BenchmarkInputs';
-import './SelectComparisons.css';
 
 const initialData = {
   fund: { description: 'Input Fund Name', pastedData: [] },
@@ -18,8 +29,8 @@ const initialData = {
     { description: 'Momentum', source: 'MSCI ACWI Momentum TR Net USD', residualization: ['Equity', 'Interest Rates', 'Credit', 'Emerging Markets'] },
     { description: 'Quality', source: 'MSCI ACWI Quality TR Net USD', residualization: ['Equity', 'Interest Rates', 'Credit', 'Emerging Markets'] },
     { description: 'Small Cap', source: 'MSCI ACWI Small Cap TR Net USD', residualization: ['Equity', 'Interest Rates', 'Credit', 'Emerging Markets'] },
-    { description: 'Value', source: 'MSCI ACWI Value TR Net USD', residualization: ['Equity', 'Interest Rates', 'Credit', 'Emerging Markets'] }
-  ]
+    { description: 'Value', source: 'MSCI ACWI Value TR Net USD', residualization: ['Equity', 'Interest Rates', 'Credit', 'Emerging Markets'] },
+  ],
 };
 
 const base_url = 'https://return-attribution-c87301303521.herokuapp.com';
@@ -36,13 +47,13 @@ const SelectComparisons = () => {
   useEffect(() => {
     const savedData = localStorage.getItem('comparisonData');
     if (savedData) {
-        setData(JSON.parse(savedData));
+      setData(JSON.parse(savedData));
     }
-}, []);
+  }, []);
 
   // Save state to localStorage whenever it updates
   useEffect(() => {
-    console.log("State updated:", data);
+    console.log('State updated:', data);
     localStorage.setItem('comparisonData', JSON.stringify(data));
   }, [data]);
 
@@ -52,43 +63,43 @@ const SelectComparisons = () => {
 
   const handleSubmit = () => {
     if (data.fund.pastedData.length === 0) {
-        setSnackbarSeverity('warning');
-        setSnackbarMessage("Please paste fund returns above");
-        setSnackbarOpen(true);
-        return;
+      setSnackbarSeverity('warning');
+      setSnackbarMessage('Please paste fund returns above');
+      setSnackbarOpen(true);
+      return;
     }
 
     setLoading(true);
     setSnackbarSeverity('info');
-    setSnackbarMessage("This may take a few minutes...");
+    setSnackbarMessage('This may take a few minutes...');
     setSnackbarOpen(true);
 
     const url = base_url + '/submit-data';
 
     fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data)
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
     })
-    .then(response => {
+      .then((response) => {
         if (!response.ok) {
-            throw new Error('Network response was not ok');
+          throw new Error('Network response was not ok');
         }
         return response.json();
-    })
-    .then(responseData => {
+      })
+      .then((responseData) => {
         const taskId = responseData.task_id;
         checkTaskStatus(taskId);
-    })
-    .catch(error => {
+      })
+      .catch((error) => {
         console.error('Error:', error);
         setSnackbarSeverity('error');
         setSnackbarMessage(`Error: ${error.message}`);
         setSnackbarOpen(true);
         setLoading(false);
-    });
+      });
   };
 
   const handleReset = () => {
@@ -96,68 +107,67 @@ const SelectComparisons = () => {
     localStorage.removeItem('comparisonData'); // Clear saved data from localStorage
   };
 
-    // Modify the checkTaskStatus function to handle new task states
+  // Modify the checkTaskStatus function to handle new task states
   const checkTaskStatus = (taskId) => {
     const statusUrl = base_url + `/task-status/${taskId}`;
 
     const intervalId = setInterval(() => {
-        fetch(statusUrl)
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return response.json();
+      fetch(statusUrl)
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
         })
-        .then(statusData => {
-            if (statusData.status === 'completed') {
-                console.log('Processed Data:', statusData.result);
-                
-                // Save the current state before navigating
-                localStorage.setItem('submittedData', JSON.stringify(data));
-                
-                navigate('/analysis', { state: { data: statusData.result } });
-                setLoading(false);
-                clearInterval(intervalId);
-            } else if (statusData.status === 'error') {
-                setSnackbarSeverity('error');
-                setSnackbarMessage(`Error: ${statusData.error}`);
-                setSnackbarOpen(true);
-                setLoading(false);
-                clearInterval(intervalId);
-            } else if (statusData.status === 'pending' || statusData.status === 'STARTED') {
-                console.log('Processing...');
-            } else {
-                console.log(`Task status: ${statusData.status}`);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
+        .then((statusData) => {
+          if (statusData.status === 'completed') {
+            console.log('Processed Data:', statusData.result);
+
+            // Save the current state before navigating
+            localStorage.setItem('submittedData', JSON.stringify(data));
+
+            navigate('/analysis', { state: { data: statusData.result } });
+            setLoading(false);
+            clearInterval(intervalId);
+          } else if (statusData.status === 'error') {
             setSnackbarSeverity('error');
-            setSnackbarMessage(`Error: ${error.message}`);
+            setSnackbarMessage(`Error: ${statusData.error}`);
             setSnackbarOpen(true);
             setLoading(false);
             clearInterval(intervalId);
+          } else if (statusData.status === 'pending' || statusData.status === 'STARTED') {
+            console.log('Processing...');
+          } else {
+            console.log(`Task status: ${statusData.status}`);
+          }
+        })
+        .catch((error) => {
+          console.error('Error:', error);
+          setSnackbarSeverity('error');
+          setSnackbarMessage(`Error: ${error.message}`);
+          setSnackbarOpen(true);
+          setLoading(false);
+          clearInterval(intervalId);
         });
     }, 5000); // Check every 5 seconds
   };
 
-
   const handleFundDescriptionChange = (field, value) => {
-    setData(prevData => ({
+    setData((prevData) => ({
       ...prevData,
-      fund: { ...prevData.fund, [field]: value }
+      fund: { ...prevData.fund, [field]: value },
     }));
   };
 
   const handleBenchmarkChange = (field, value) => {
-    setData(prevData => ({
+    setData((prevData) => ({
       ...prevData,
-      benchmark: { ...prevData.benchmark, [field]: value }
+      benchmark: { ...prevData.benchmark, [field]: value },
     }));
   };
 
   const handleDataChange = (index, field, value) => {
-    setData(prevData => {
+    setData((prevData) => {
       const updatedResiduals = prevData.residual_return_streams.map((residual, i) => {
         if (i === index) {
           return { ...residual, [field]: value };
@@ -165,142 +175,152 @@ const SelectComparisons = () => {
         if (field === 'description') {
           return {
             ...residual,
-            residualization: residual.residualization.map(residualizationItem =>
+            residualization: residual.residualization.map((residualizationItem) =>
               residualizationItem === prevData.residual_return_streams[index].description ? value : residualizationItem
-            )
+            ),
           };
         }
         return residual;
       });
       return {
         ...prevData,
-        residual_return_streams: updatedResiduals
+        residual_return_streams: updatedResiduals,
       };
     });
   };
 
   const handleRemoveRegression = (description) => {
-    setData(prevData => {
+    setData((prevData) => {
       const updatedResiduals = prevData.residual_return_streams
-        .filter(residual => residual.description !== description)
-        .map(residual => ({
+        .filter((residual) => residual.description !== description)
+        .map((residual) => ({
           ...residual,
-          residualization: residual.residualization.filter(residualizationItem => residualizationItem !== description)
+          residualization: residual.residualization.filter((residualizationItem) => residualizationItem !== description),
         }));
       return {
         ...prevData,
-        residual_return_streams: updatedResiduals
+        residual_return_streams: updatedResiduals,
       };
     });
   };
 
   const handleAddResidual = () => {
-    setData(prevData => ({
+    setData((prevData) => ({
       ...prevData,
-      residual_return_streams: [...prevData.residual_return_streams, { description: `New Residual ${prevData.residual_return_streams.length + 1}`, source: '', residualization: [] }]
+      residual_return_streams: [
+        ...prevData.residual_return_streams,
+        { description: `New Residual ${prevData.residual_return_streams.length + 1}`, source: '', residualization: [] },
+      ],
     }));
   };
 
   const handlePastedDataUpdate = (newData) => {
     console.log(newData);
-    setData(prevData => ({
+    setData((prevData) => ({
       ...prevData,
       fund: {
         ...prevData.fund,
-        pastedData: newData
-      }
+        pastedData: newData,
+      },
     }));
   };
 
-  const availableDescriptions = data.residual_return_streams.map(stream => stream.description);
+  const availableDescriptions = data.residual_return_streams.map((stream) => stream.description);
 
   return (
-    <Box sx={{ padding: 2 }}>
-      <Typography variant="h4">Return-Based Statistical Analysis</Typography>
-      <Typography variant="b2">Upload and select return streams below</Typography>
-      <div className="return-stream-accordions">
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="h6" sx={{ textAlign: 'left' }}>Fund</Typography>
-          <FundReturnInput
-            fund={data.fund}
-            onDescriptionChange={handleFundDescriptionChange}
-            updateFundReturns={handlePastedDataUpdate}
-            pastedData={data.fund.pastedData} // Pass pastedData as a prop
-          />
-        </Box>
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="h6" sx={{ textAlign: 'left' }}>Benchmark</Typography>
-          <BenchmarkInputs
-            benchmarkData={data.benchmark}
-            handleDescriptionChange={handleBenchmarkChange}
-            handleStreamChange={handleBenchmarkChange}
-          />
-        </Box>
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="h6" sx={{ textAlign: 'left' }}>Regression Return Streams</Typography>
-          {data.residual_return_streams.map((stream, index) => (
-            <RegressionAccordion
-              key={index}
-              index={index}
-              returnStream={stream}
-              handleDataChange={handleDataChange}
-              onRemove={() => handleRemoveRegression(stream.description)}
-              availableDescriptions={availableDescriptions}
-            />
-          ))}
-          <IconButton
-            color="primary"
-            onClick={handleAddResidual}
-            sx={{
-              backgroundColor: '#b2dfdb',  // A softer shade of teal
-              color: 'white',
-              '&:hover': {
-                backgroundColor: '#82ada9',  // A darker, muted teal for hover
-              },
-              mt: 1,
-              float: 'right'  // Aligns the button to the right
-            }}
-          >
-            <AddIcon />
-          </IconButton>
-        </Box>
-      </div>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 2 }}>
-        <Button
-          variant="outlined"
-          color="secondary"
-          className="reset-button"
-          onClick={handleReset}
-          sx={{
-            padding: '6px 16px',
-            borderColor: '#f44336',
-            color: '#f44336',
-            '&:hover': {
-              backgroundColor: '#fce4ec',
-              borderColor: '#f44336',
-            }
-          }}
-        >
-          Reset Page
-        </Button>
-        <Box sx={{ flexGrow: 1, textAlign: 'center' }}>
-          <Button
-            variant="contained"
-            color="primary"
-            className="submit-button"
-            onClick={handleSubmit}
-            disabled={loading}
-          >
+    <Container maxWidth="lg">
+      <Box sx={{ padding: 2 }}>
+        <Typography variant="h3" sx={{ mb: 2 }}>
+          Return-Based Statistical Analysis
+        </Typography>
+        <Typography variant="body1" sx={{ mb: 4 }}>
+          Upload and select return streams below
+        </Typography>
+        <Grid container spacing={3}>
+          {/* Fund Section */}
+          <Grid item xs={12} md={6}>
+            <Paper elevation={3} sx={{ p: 2 }}>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Fund
+              </Typography>
+              <FundReturnInput
+                fund={data.fund}
+                onDescriptionChange={handleFundDescriptionChange}
+                updateFundReturns={handlePastedDataUpdate}
+                pastedData={data.fund.pastedData}
+              />
+            </Paper>
+          </Grid>
+
+          {/* Benchmark Section */}
+          <Grid item xs={12} md={6}>
+            <Paper elevation={3} sx={{ p: 2 }}>
+              <Typography variant="h6" sx={{ mb: 2 }}>
+                Benchmark
+              </Typography>
+              <BenchmarkInputs
+                benchmarkData={data.benchmark}
+                handleDescriptionChange={handleBenchmarkChange}
+                handleStreamChange={handleBenchmarkChange}
+              />
+            </Paper>
+          </Grid>
+
+          {/* Regression Return Streams Section */}
+          <Grid item xs={12}>
+            <Paper elevation={3} sx={{ p: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h6">Regression Return Streams</Typography>
+              </Box>
+              {data.residual_return_streams.map((stream, index) => (
+                <RegressionAccordion
+                  key={index}
+                  index={index}
+                  returnStream={stream}
+                  handleDataChange={handleDataChange}
+                  onRemove={() => handleRemoveRegression(stream.description)}
+                  availableDescriptions={availableDescriptions}
+                />
+              ))}
+              {/* Add Residual Button at the Bottom */}
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
+                <IconButton
+                  color="primary"
+                  onClick={handleAddResidual}
+                  sx={{
+                    backgroundColor: (theme) => theme.palette.primary.main,
+                    color: 'white',
+                    '&:hover': {
+                      backgroundColor: (theme) => theme.palette.primary.dark,
+                    },
+                  }}
+                >
+                  <AddIcon />
+                </IconButton>
+              </Box>
+            </Paper>
+          </Grid>
+          
+        </Grid>
+
+        {/* Buttons */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 4 }}>
+          <Button variant="outlined" color="error" onClick={handleReset}>
+            Reset Page
+          </Button>
+          <Button variant="contained" color="primary" onClick={handleSubmit} disabled={loading} sx={{ minWidth: 120 }}>
             {loading ? <CircularProgress size={24} color="inherit" /> : 'Submit'}
           </Button>
         </Box>
+
+        {/* Snackbar for Notifications */}
+        <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
+          <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
       </Box>
-      <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
-        <Alert onClose={handleSnackbarClose} severity={snackbarSeverity} sx={{ width: '100%' }}>
-          {snackbarMessage}
-        </Alert>
-      </Snackbar>
-    </Box>
+    </Container>
   );
 };
 

@@ -14,7 +14,7 @@ import SearchComponent from '../SearchComponent'; // Adjust the import path as n
 
 const BenchmarkInputs = ({ benchmarkData, handleDescriptionChange, handleStreamChange }) => {
   const [description, setDescription] = useState(benchmarkData.description);
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const [selectedIndex, setSelectedIndex] = useState(benchmarkData.source || '');
 
   const handleChange = (event, isExpanded) => {

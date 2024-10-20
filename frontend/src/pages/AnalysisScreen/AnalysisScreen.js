@@ -6,7 +6,7 @@ import { useLocation } from 'react-router-dom';
 import ConeChartSelection from '../../components/ConeChartSelection/ConeChartSelection';
 import ChartSelection from '../../components/ChartSelection/ChartSelection';
 import RegressionChartSelection from '../../components/RegressionChartSelection/RegressionChartSelection';
-import { Box, Typography, Divider } from '@mui/material';
+import { Box, Typography, Divider, Card, CardContent, CardHeader } from '@mui/material';
 
 const AnalysisScreen = () => {
   const location = useLocation();
@@ -15,39 +15,39 @@ const AnalysisScreen = () => {
   console.log(data);
 
   return (
-    <Box className="analysis-screen-container" p={2}>
+    <Box p={2}>
       <Typography variant="h4" gutterBottom>
         Analysis
       </Typography>
       {data && (
         <>
-          <Box my={4}>
-            <Typography variant="h5">Cone Chart</Typography>
-            <ConeChartSelection data={data} metric="cone_chart" />
-          </Box>
+          <Card variant="outlined" sx={{ mb: 4 }}>
+            <CardHeader title="Cone Chart" />
+            <CardContent>
+              <ConeChartSelection data={data} metric="cone_chart" />
+            </CardContent>
+          </Card>
 
-          <Divider />
+          <Card variant="outlined" sx={{ mb: 4 }}>
+            <CardHeader title="Rolling Return" />
+            <CardContent>
+              <ChartSelection data={data} metric="rolling_return" />
+            </CardContent>
+          </Card>
 
-          <Box my={4}>
-            <Typography variant="h5">Rolling Return</Typography>
-            <ChartSelection data={data} metric="rolling_return" />
-          </Box>
+          <Card variant="outlined" sx={{ mb: 4 }}>
+            <CardHeader title="Rolling Volatility" />
+            <CardContent>
+              <ChartSelection data={data} metric="rolling_volatility" />
+            </CardContent>
+          </Card>
 
-          <Divider />
-
-          <Box my={4}>
-            <Typography variant="h5">Rolling Volatility</Typography>
-            <ChartSelection data={data} metric="rolling_volatility" />
-          </Box>
-
-          <Divider />
-
-          <Box my={4}>
-            <Typography variant="h5">Regression Models</Typography>
-            <RegressionChartSelection data={data} metric="regression_metric" />
-          </Box>
-
-          <Divider />
+          <Card variant="outlined" sx={{ mb: 4 }}>
+            <CardHeader title="Regression Models" />
+            <CardContent>
+              <RegressionChartSelection data={data} metric="regression_metric" />
+            </CardContent>
+          </Card>
         </>
       )}
     </Box>

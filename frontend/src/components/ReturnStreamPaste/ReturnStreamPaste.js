@@ -54,7 +54,11 @@ const ReturnStreamPaste = ({ onClear, onSubmit }) => {
         rows={rows}
         columns={columns}
         pageSize={rows.length}
-        rowsPerPageOptions={[rows.length]}
+        // rowsPerPageOptions={[rows.length]}
+        hideFooterSelectedRowCount // Hides "1 row selected"
+        components={{
+          Pagination: () => null // Removes "Rows per page" text
+        }}
         onCellClick={() => document.activeElement.blur()}
         sx={{ height: 300, '& .MuiDataGrid-footerContainer': { justifyContent: 'space-between' } }}
       />
