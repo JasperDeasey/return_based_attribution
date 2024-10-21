@@ -4,6 +4,7 @@ import multiprocessing
 from celery import Celery
 from dotenv import load_dotenv
 import ssl  # Import the ssl module
+from celery.schedules import crontab
 
 # Load environment variables
 load_dotenv()
@@ -43,5 +44,12 @@ celery.conf.update(
     broker_connection_retry_on_startup=True  # Ensure retries during startup in case of connection issues
 )
 
+celery.conf.beat_schedule = {
+    'run-benchmark-return-upload': {
+        'task': 'data.tasks.run_benchmark_return_upload',  # Updated task path
+        'schedule': crontab(minute=0, hour=0, day_of_month='2'),  # Every 2nd day at midnight
+    },
+}
+
 # Autodiscover tasks from the 'analysis' module
-celery.autodiscover_tasks(['analysis'])
+celery.autodiscover_tasks(['analysis', 'data'])
